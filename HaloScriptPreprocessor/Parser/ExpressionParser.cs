@@ -12,17 +12,11 @@ namespace HaloScriptPreprocessor.Parser
         {
             _parsedExpressions = parsedExpressions;
             _sourceFile = sourceFile;
-            parse();
-        }
-
-        public ParsedExpressions GetParsedExpressions()
-        {
-            return _parsedExpressions;
         }
 
         #region implementation
 
-        private void parse()
+        public void Parse()
         {
             (TokenType Type, OneOf<ExpressionSource, SourceLocation> Source)? token;
             while ((token = nextToken()) is not null)

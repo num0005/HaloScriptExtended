@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace HaloScriptPreprocessor.Parser
 {
-    public record SourceFile(string Data, string FileName);
+    public record SourceFile(string Data, string FileName, Expression? SourceExpression);
 
 
     /// <summary>
@@ -149,6 +149,12 @@ namespace HaloScriptPreprocessor.Parser
         {
             Debug.Assert(!_done, "Attempting to add expression after parsing was completed!");
             expressions.Add(expression);
+        }
+
+        internal void RemoveExpression(Expression expression)
+        {
+            Debug.Assert(!_done, "Attempting to remove expression after parsing was completed!");
+            expressions.Remove(expression);
         }
 
         internal void Done()

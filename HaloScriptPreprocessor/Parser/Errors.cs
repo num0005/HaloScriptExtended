@@ -40,4 +40,9 @@ namespace HaloScriptPreprocessor.Parser
     {
         public UnexpectedExpression(ExpressionSource source, string message) : base(source, message) { }
     }
+
+    class InvalidExpression : ParseError
+    {
+        public InvalidExpression(ExpressionSource source, string message) : base(source, message) { }
+    }
 }
