@@ -38,15 +38,15 @@ namespace HaloScriptPreprocessor.Parser
                 if (typeSpan.SequenceEqual(globalSpan))
                 {
                     // build global AST
-                    _ast.UserGlobals.Add(buildGlobal(expression));
+                    _ast.Add(buildGlobal(expression));
                 } else if (typeSpan.SequenceEqual(scriptSpan))
                 {
                     // build script AST
-                    _ast.UserFunctions.Add(buildScript(expression));
+                    _ast.Add(buildScript(expression));
                 } else if (typeSpan.SequenceEqual(constglobalSpan))
                 {
                     // build constant global AST
-                    _ast.ConstantGlobals.Add(buildGlobal(expression));
+                    _ast.Add(buildGlobal(expression));
                 } else if (typeSpan.SequenceEqual(importSpan))
                 {
                     continue; // imports are already handled in parseExpressions
@@ -75,7 +75,7 @@ namespace HaloScriptPreprocessor.Parser
                 case ScriptType.CommandScript:
                 {
                         if (expression.Values[2] is not Atom name)
-                            throw new InvalidExpression(expression.Values[1].Source, "Expecting an atom for script name!");
+                            throw new InvalidExpression(expression.Values[2].Source, "Expecting an atom for script name!");
                         return new AST.Script(expression, type, buildAtom(name), buildCodeList(expression, 3));
                     }
                 case ScriptType.Stub:
@@ -83,7 +83,7 @@ namespace HaloScriptPreprocessor.Parser
                     {
 
                         if (expression.Values[3] is not Atom name)
-                            throw new InvalidExpression(expression.Values[1].Source, "Expecting an atom for script name!");
+                            throw new InvalidExpression(expression.Values[3].Source, "Expecting an atom for script name!");
                         return new AST.Script(expression, type, buildAtom(name), buildCodeList(expression, 4));
                     }
                 default:
@@ -91,11 +91,21 @@ namespace HaloScriptPreprocessor.Parser
             }
         }
 
-        private LinkedList<AST.Code> buildCodeList(Expression expression, int offset)
+        private LinkedList<AST.Value> buildCodeList(Expression expression, int offset)
         {
-            LinkedList<AST.Code> list = new();
+            LinkedList<AST.Value> list = new();
             for (int i = offset; i < expression.Values.Count; i++)
-                list.AddLast(buildCode(expression.Values[i]));
+            {
+                Value currentValue = expression.Values[i];
+                AST.Value value;
+                if (i + 1 == expression.Values.Count && currentValue is Atom returnValue)
+                    value = new(returnValue, buildAtom(returnValue));
+                else
+#pragma warning disable CS8604 // Possible null reference argument.
+                    value = new(currentValue as Expression, buildCode(currentValue, null));
+#pragma warning restore CS8604 // Possible null reference argument.
+                list.AddLast(value);
+            }
             return list;
         }
 
@@ -116,27 +126,37 @@ namespace HaloScriptPreprocessor.Parser
             return global;
         }
 
-        private AST.Value buildValue(Value value)
+        private AST.Value buildValue(Value value, AST.Atom? parentExpressionType = null)
         {
             if (value is Atom atom)
                 return new(atom, buildAtom(atom));
             if (value is Expression expression)
-                return new(expression, buildCode(expression));
+                return new(expression, buildCode(expression, parentExpressionType));
             throw new InvalidOperationException();
         }
 
-        private AST.Code buildCode(Value value)
+        private AST.Code buildCode(Value value, AST.Atom? parentExpressionType)
         {
             if (value is not Expression expression)
                 throw new UnexpectedAtom(value.Source, "Expected code, got atom!");
             if (expression.Values.Count == 0)
                 throw new UnexpectedExpression(expression.Source, "Unexpected empty expression!");
-            if (expression.Values[0] is not Atom name)
-                throw new InvalidExpression(expression.Values[0].Source, "Expecting an atom for name!");
+
+            int start = 1;
+            AST.Atom name;
+            if (expression.Values[0] is not Atom atomName)
+            {
+                if (parentExpressionType is not null && parentExpressionType.ToString() == "cond")
+                    name = new AST.Atom("if");
+                else
+                    throw new InvalidExpression(expression.Values[0].Source, "Expecting an atom for name!");
+            } else {
+                name = buildAtom(atomName);
+            }
             LinkedList<AST.Value> arguments = new();
-            for (int i = 1; i < expression.Values.Count; i++)
-                arguments.AddLast(buildValue(expression.Values[i]));
-            return new AST.Code(expression, buildAtom(name), arguments);
+            for (int i = start; i < expression.Values.Count; i++)
+                arguments.AddLast(buildValue(expression.Values[i], name));
+            return new AST.Code(expression, name, arguments);
         }
 
         /// <summary>

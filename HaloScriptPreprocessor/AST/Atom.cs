@@ -14,6 +14,12 @@ namespace HaloScriptPreprocessor.AST
         {
             _value = source;
         }
+        public Atom(string source) : base(null)
+        {
+            _value = source;
+            _modified = true;
+        }
+
 
         private OneOf<Parser.Atom, string> _value;
         public OneOf<Parser.Atom, string> Value {

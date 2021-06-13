@@ -8,7 +8,7 @@ namespace HaloScriptPreprocessor.AST
 {
     public class Script : NodeNamed
     {
-        public Script(Parser.Expression source, ScriptType type,  Atom name, LinkedList<Code> code, ValueType? valueType = null) : base(source)
+        public Script(Parser.Expression source, ScriptType type,  Atom name, LinkedList<Value> code, ValueType? valueType = null) : base(source)
         {   
             Type = type;
             ScriptName = name;
@@ -19,7 +19,7 @@ namespace HaloScriptPreprocessor.AST
         public ScriptType Type;
         public ValueType? ReturnValueType;
         public Atom ScriptName;
-        public LinkedList<Code> Codes = new();
+        public LinkedList<Value> Codes = new();
 
         public override Atom Name => ScriptName;
 

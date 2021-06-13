@@ -8,7 +8,7 @@ namespace HaloScriptPreprocessor.AST
 {
     public abstract class Node
     {
-        public Node(Parser.Value source)
+        public Node(Parser.Value? source)
         {
             Source = source;
         }
@@ -17,7 +17,7 @@ namespace HaloScriptPreprocessor.AST
         /// </summary>
         public abstract uint NodeCount { get; }
 
-        public readonly Parser.Value Source;
+        public readonly Parser.Value? Source;
     }
 
     public abstract class NodeNamed : Node
