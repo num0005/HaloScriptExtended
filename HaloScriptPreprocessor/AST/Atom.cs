@@ -1,16 +1,22 @@
 ﻿using OneOf;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace HaloScriptPreprocessor.AST
 {
-    class Atom : INode
+    public class Atom : Node
     {
-        private OneOf<Parser.ExpressionParser.Atom, string> _value;
-        public OneOf<Parser.ExpressionParser.Atom, string> Value {
+        public Atom(Parser.Atom source) : base(source)
+        {
+            _value = source;
+        }
+
+        private OneOf<Parser.Atom, string> _value;
+        public OneOf<Parser.Atom, string> Value {
             get => _value;
             set
             {
@@ -45,6 +51,16 @@ namespace HaloScriptPreprocessor.AST
             get => _modified;
         }
 
-        public uint NodeCount => 1;
+        public override uint NodeCount => 1;
+
+        public override string ToString()
+        {
+            if (_value.IsT0)
+                return _value.AsT0.Value;
+            if (_value.IsT1)
+                return _value.AsT1;
+            Debug.Assert(false, "OneOf should be atom or string!");
+            return "";
+        }
     }
 }

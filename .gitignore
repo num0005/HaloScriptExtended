@@ -1,4 +1,6 @@
 *.lisp
+*.hsc
+*.hscx
 */obj/*
 */bin/*
 .vs

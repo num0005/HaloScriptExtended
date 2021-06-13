@@ -13,6 +13,7 @@ namespace HaloScriptPreprocessor.AST
         Dormant,
         Static,
         Stub,
+        CommandScript,
         Macro, // hscx extension
 
         Invalid
@@ -34,11 +35,33 @@ namespace HaloScriptPreprocessor.AST
                     return ScriptType.Static;
                 case "stub":
                     return ScriptType.Stub;
+                case "command_script":
+                    return ScriptType.CommandScript;
                 case "macro":
                     return ScriptType.Macro;
                 default:
                     return ScriptType.Invalid;
             }
+        }
+
+        public static ScriptType ParseScriptType(this ReadOnlySpan<char> str)
+        {
+            if (str.SequenceEqual("startup"))
+                return ScriptType.Startup;
+            else if (str.SequenceEqual("continuous"))
+                return ScriptType.Continuous;
+            else if (str.SequenceEqual("dormant"))
+                return ScriptType.Dormant;
+            else if (str.SequenceEqual("static"))
+                return ScriptType.Static;
+            else if (str.SequenceEqual("Stub"))
+                return ScriptType.Stub;
+            else if (str.SequenceEqual("command_script"))
+                return ScriptType.CommandScript;
+            else if (str.SequenceEqual("macro"))
+                return ScriptType.Macro;
+            else
+                return ScriptType.Invalid;
         }
 
         public static string ToSyntaxString(this ScriptType type)
@@ -55,6 +78,8 @@ namespace HaloScriptPreprocessor.AST
                     return "static";
                 case ScriptType.Stub:
                     return "stub";
+                case ScriptType.CommandScript:
+                    return "command_script";
                 case ScriptType.Macro:
                     return "macro";
             }

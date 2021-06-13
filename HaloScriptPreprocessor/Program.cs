@@ -14,13 +14,14 @@ namespace HaloScriptPreprocessor
 )";
         static void Main(string[] args)
         {
-            string a_tutorial_mission = File.ReadAllText("01a_tutorial_mission.lisp");
-            Parser.ExpressionParser parser = new (a_tutorial_mission);
-            var parsed = parser.GetParsedExpressions();
-            parser = null;
-            Parser.ASTBuilder builder = new(parsed);
-
-            Console.WriteLine(parsed);
+            //string a_tutorial_mission = File.ReadAllText("01a_tutorial_mission.lisp");
+            //Parser.ExpressionParser parser = new (a_tutorial_mission);
+            //var parsed = parser.GetParsedExpressions();
+            //parser = null;
+            //Parser.ASTBuilder builder = new(parsed);
+            Parser.ASTBuilder builder = new("", "01a_tutorial_mission.hsc");
+            //Parser.ASTBuilder builder = new("", "crash.lisp");
+            Console.WriteLine(builder.ToString());
         }
     }
 }

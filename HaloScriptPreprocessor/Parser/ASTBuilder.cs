@@ -1,5 +1,7 @@
-﻿using System;
+﻿using HaloScriptPreprocessor.AST;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,6 +15,9 @@ namespace HaloScriptPreprocessor.Parser
         {
             _directory = directory;
             _mainFile = mainFile;
+            // parse expressions
+            parseExpressions();
+            // build AST from expressions
             build();
         }
 
@@ -21,33 +26,127 @@ namespace HaloScriptPreprocessor.Parser
             ReadOnlySpan<char> globalSpan      = "global".AsSpan();
             ReadOnlySpan<char> constglobalSpan = "constglobal".AsSpan();
             ReadOnlySpan<char> scriptSpan      = "script".AsSpan();
+            ReadOnlySpan<char> importSpan      = "import".AsSpan();
+
             foreach (Expression expression in _parsed.Expressions)
             {
                 if (expression.Values.Count == 0)
                     throw new UnexpectedExpression(expression.Source, "Unexpected empty expression!");
-                Value expressionType = expression.Values[0];
-                if (expressionType is not Atom)
-                    throw new UnexpectedExpression(expressionType.Source, "Expecting \"global\", \"script\" or \"constglobal\" but got an expression!");
-                ReadOnlySpan<char> typeSpan = (expressionType as Atom).Source.Span;
+                if (expression.Values[0] is not Atom expressionType)
+                    throw new UnexpectedExpression(expression.Values[0].Source, "Expecting \"global\", \"script\" or \"constglobal\" but got an expression!");
+                ReadOnlySpan<char> typeSpan = expressionType.Source.Span;
                 if (typeSpan.SequenceEqual(globalSpan))
                 {
                     // build global AST
+                    _ast.UserGlobals.Add(buildGlobal(expression));
                 } else if (typeSpan.SequenceEqual(scriptSpan))
                 {
                     // build script AST
+                    _ast.UserFunctions.Add(buildScript(expression));
                 } else if (typeSpan.SequenceEqual(constglobalSpan))
                 {
                     // build constant global AST
+                    _ast.ConstantGlobals.Add(buildGlobal(expression));
+                } else if (typeSpan.SequenceEqual(importSpan))
+                {
+                    continue; // imports are already handled in parseExpressions
                 } else
                 {
-                    // error
+                    throw new UnexpectedExpression(expressionType.Source, $"Expecting \"global\", \"script\" or \"constglobal\" but got \"{typeSpan.ToString()}\"!");
                 }
             }
         }
 
-        private void buildScript(Expression expression)
+        private AST.Script buildScript(Expression expression)
         {
-            //ReadOnlySpan<char> 
+            Debug.Assert(expression.Values[0].Source.Contents == "script");
+            if (expression.Values.Count < 4)
+                throw new InvalidExpression(expression.Source, "Too short to be a script!");
+            if (expression.Values[1] is not Atom typeAtom)
+                throw new InvalidExpression(expression.Values[1].Source, "Expecting an atom for script type!");
+            ScriptType type = typeAtom.Source.Span.ParseScriptType();
+            if (type == ScriptType.Invalid)
+                throw new InvalidExpression(expression.Values[1].Source, $"Invalid script type \"{typeAtom.Source.Contents}\"!");
+            switch (type)
+            {
+                case ScriptType.Continuous:
+                case ScriptType.Dormant:
+                case ScriptType.Startup:
+                case ScriptType.CommandScript:
+                {
+                        if (expression.Values[2] is not Atom name)
+                            throw new InvalidExpression(expression.Values[1].Source, "Expecting an atom for script name!");
+                        return new AST.Script(expression, type, buildAtom(name), buildCodeList(expression, 3));
+                    }
+                case ScriptType.Stub:
+                case ScriptType.Static:
+                    {
+
+                        if (expression.Values[3] is not Atom name)
+                            throw new InvalidExpression(expression.Values[1].Source, "Expecting an atom for script name!");
+                        return new AST.Script(expression, type, buildAtom(name), buildCodeList(expression, 4));
+                    }
+                default:
+                    throw new Exception("todo");
+            }
+        }
+
+        private LinkedList<AST.Code> buildCodeList(Expression expression, int offset)
+        {
+            LinkedList<AST.Code> list = new();
+            for (int i = offset; i < expression.Values.Count; i++)
+                list.AddLast(buildCode(expression.Values[i]));
+            return list;
+        }
+
+        private AST.Global buildGlobal(Expression expression)
+        {
+            if (expression.Values.Count != 4)
+                throw new InvalidExpression(expression.Source, "Excepting a expression in the format \"(global <type> <name> <value>)\"!");
+            if (expression.Values[1] is not Atom typeAtom)
+                throw new InvalidExpression(expression.Values[1].Source, "Expecting an atom for global type!");
+            if (expression.Values[2] is not Atom nameAtom)
+                throw new InvalidExpression(expression.Values[1].Source, "Expecting an atom for global name!");
+
+            Debug.Assert(expression.Values[0].Source.Contents == "global" || expression.Values[0].Source.Contents == "constglobal");
+
+
+            AST.ValueType type = new (typeAtom.Value);
+            AST.Global global = new(expression, buildAtom(nameAtom), type, buildValue(expression.Values[3]));
+            return global;
+        }
+
+        private AST.Value buildValue(Value value)
+        {
+            if (value is Atom atom)
+                return new(atom, buildAtom(atom));
+            if (value is Expression expression)
+                return new(expression, buildCode(expression));
+            throw new InvalidOperationException();
+        }
+
+        private AST.Code buildCode(Value value)
+        {
+            if (value is not Expression expression)
+                throw new UnexpectedAtom(value.Source, "Expected code, got atom!");
+            if (expression.Values.Count == 0)
+                throw new UnexpectedExpression(expression.Source, "Unexpected empty expression!");
+            if (expression.Values[0] is not Atom name)
+                throw new InvalidExpression(expression.Values[0].Source, "Expecting an atom for name!");
+            LinkedList<AST.Value> arguments = new();
+            for (int i = 1; i < expression.Values.Count; i++)
+                arguments.AddLast(buildValue(expression.Values[i]));
+            return new AST.Code(expression, buildAtom(name), arguments);
+        }
+
+        /// <summary>
+        /// Build a AST atom from a parser atom
+        /// </summary>
+        /// <param name="atom"></param>
+        /// <returns></returns>
+        private AST.Atom buildAtom(Atom atom)
+        {
+            return new(atom);
         }
 
         /// <summary>
@@ -70,14 +169,13 @@ namespace HaloScriptPreprocessor.Parser
         private void handleImportDirectives()
         {
             ReadOnlySpan<char> importSpan = "import".AsSpan();
-            List<Expression> removeList = new();
+
             foreach (Expression expression in _parsed.Expressions)
             {
                 if (expression.Values.Count == 0)
                     continue;
-                if (expression.Values[0] is not Atom)
+                if (expression.Values[0] is not Atom type)
                     continue;
-                Atom type = expression.Values[0] as Atom;
                 if (!type.Span.SequenceEqual(importSpan))
                     continue;
 
@@ -90,11 +188,7 @@ namespace HaloScriptPreprocessor.Parser
 
                 string fileName = fileNameAtom.Source.Contents;
                 importSourceFile(fileName, expression); // add the new expressions (if any)
-                removeList.Add(expression); // remember to remove this later
             }
-
-            foreach (Expression expression in removeList)
-                _parsed.RemoveExpression(expression);
         }
 
         /// <summary>
@@ -145,10 +239,12 @@ namespace HaloScriptPreprocessor.Parser
 
         private readonly ParsedExpressions _parsed = new();
 
-        private Dictionary<string, SourceFile> _files;
+        private readonly Dictionary<string, SourceFile> _files = new();
 
-        private string _directory;
+        private readonly string _directory;
 
-        private string _mainFile;
+        private readonly string _mainFile;
+
+        private readonly AST.AST _ast = new();
     }
 }

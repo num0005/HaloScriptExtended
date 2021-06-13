@@ -6,12 +6,18 @@ using System.Threading.Tasks;
 
 namespace HaloScriptPreprocessor.AST
 {
-    class Code : INode
+    public class Code : Node
     {
-        public Atom Function;
-        public LinkedList<Value> Arguments = new();
+        public Code(Parser.Expression source, Atom function, LinkedList<Value> arguments) : base(source)
+        {
+            Function = function;
+            Arguments = arguments;
+        }
 
-        public uint NodeCount
+        public Atom Function;
+        public LinkedList<Value> Arguments;
+
+        public override uint NodeCount
         {
             get
             {

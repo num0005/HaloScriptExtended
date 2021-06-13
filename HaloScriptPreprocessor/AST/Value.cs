@@ -7,20 +7,20 @@ using System.Threading.Tasks;
 
 namespace HaloScriptPreprocessor.AST
 {
-    class Value : INode
+    public class Value : Node
     {
-        public Value(Atom atom)
+        public Value(Parser.Atom source, Atom atom) : base(source)
         {
             Content = atom;
         }
 
-        public Value(Code code)
+        public Value(Parser.Expression source, Code code) : base(source)
         {
             Content = code;
         }
 
-        public readonly OneOf<Atom, Code> Content;
+        public readonly OneOf<Atom, Code, Global> Content;
 
-        public uint NodeCount => Content.IsT1 ? Content.AsT1.NodeCount : 1;
+        public override uint NodeCount => Content.IsT1 ? Content.AsT1.NodeCount : 1;
     }
 }
