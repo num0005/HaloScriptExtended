@@ -8,6 +8,7 @@ namespace HaloScriptPreprocessor.Parser
 {
     public record SourceFile(string Data, string FileName, Expression? SourceExpression);
 
+    /*
 
     /// <summary>
     /// Location in the source
@@ -17,6 +18,20 @@ namespace HaloScriptPreprocessor.Parser
         int Line, // line (used for debugging)
         int Column // column (used for debugging)
     );
+    */
+
+    public struct SourceLocation
+    {
+        public SourceLocation(int Offset, int Line, int Column)
+        {
+            this.Offset = Offset;
+            this.Line = Line;
+            this.Column = Column;
+        }
+        public readonly int Offset; // Offset in the source string
+        public readonly int Line; // line (used for debugging)
+        public readonly int Column; // column (used for debugging)
+    }
 
     /// <summary>
     /// Source of a parsed expression
@@ -42,7 +57,7 @@ namespace HaloScriptPreprocessor.Parser
             get
             {
                 Debug.Assert(!_isPartial);
-                return _file.Data.AsSpan().Slice(start: Start.Offset, length: (End.Offset - Start.Offset));
+                return _file.Data.AsSpan().Slice(start: Start.Offset, length: (End.Value.Offset - Start.Offset));
             }
         }
         public string Contents

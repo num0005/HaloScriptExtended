@@ -133,7 +133,7 @@ namespace HaloScriptPreprocessor.Parser
                     // this only handles the case of the bracket being immediately after the token, other cases are handles elsewhere
                     _currentOffset -= 1;
                     _currentColunm -= 1;
-                    return endToken(tokenStart, currentLocation);
+                    return endToken(tokenStart.Value, currentLocation);
                 }
                 else
                 {
@@ -170,7 +170,7 @@ namespace HaloScriptPreprocessor.Parser
                         _currentColunm = 0;
                         _inComment = false;
                         if (inToken())
-                            return endToken(tokenStart, newlineStart);
+                            return endToken(tokenStart.Value, newlineStart);
                         continue;
                     case '\n':
                         newlineStart = getLocation();
@@ -178,7 +178,7 @@ namespace HaloScriptPreprocessor.Parser
                         _currentColunm = 0;
                         _inComment = false;
                         if (inToken())
-                            return endToken(tokenStart, newlineStart);
+                            return endToken(tokenStart.Value, newlineStart);
                         continue;
                     case '"':
                         if (_inComment)
@@ -204,7 +204,7 @@ namespace HaloScriptPreprocessor.Parser
                         }
                         if (inQuoteToken())
                         {
-                            return endToken(quoteStartLocation, new SourceLocation(_currentOffset + 1, _currentLine, _currentColunm + 1));
+                            return endToken(quoteStartLocation.Value, new SourceLocation(_currentOffset + 1, _currentLine, _currentColunm + 1));
                         } else
                         {
                             quoteStartLocation = getLocation();
@@ -215,14 +215,14 @@ namespace HaloScriptPreprocessor.Parser
                         {
                             _inComment = true;
                             if (inToken())
-                                return endToken(tokenStart, getLocation());
+                                return endToken(tokenStart.Value, getLocation());
                             
                         }
                         continue;
                     case ' ':
                     case '\t':
                         if (!_inComment && inToken())
-                            return (TokenType.Atomic, CreateSource(tokenStart, getLocation()));
+                            return (TokenType.Atomic, CreateSource(tokenStart.Value, getLocation()));
                         continue;
                     case '(':
                         if (_inComment || inQuoteToken())
@@ -240,7 +240,7 @@ namespace HaloScriptPreprocessor.Parser
             }
             if (inQuoteToken())
             {
-                throw new UnterminatedElement(quoteStartLocation, "quote/string is not terminated!");
+                throw new UnterminatedElement(quoteStartLocation.Value, "quote/string is not terminated!");
             }
             // reached EOF
             return null;
