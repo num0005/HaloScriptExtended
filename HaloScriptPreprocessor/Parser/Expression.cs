@@ -99,6 +99,20 @@ namespace HaloScriptPreprocessor.Parser
             Source = source;
         }
         public readonly ExpressionSource Source;
+
+        public Atom ExpectAtom(string error)
+        {
+            if (this is not Atom atom)
+                throw new UnexpectedExpression(this.Source, error);
+            return atom;
+        }
+
+        public Expression ExpectExpression(string error)
+        {
+            if (this is not Expression expression)
+                throw new UnexpectedAtom(this.Source, error);
+            return expression;
+        }
     }
 
 

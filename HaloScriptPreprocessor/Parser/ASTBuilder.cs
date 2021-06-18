@@ -11,6 +11,51 @@ namespace HaloScriptPreprocessor.Parser
 {
     class ASTBuilder
     {
+
+        private struct expressionReader
+        {
+            public expressionReader(Expression expression)
+            {
+                Expression = expression;
+                _index = 0;
+            }
+
+            public Value? Next()
+            {
+                if (_index == Expression.Values.Count)
+                    return null;
+                return Expression.Values[_index++];
+            }
+
+            public bool IsEoS()
+            {
+                return _index == Expression.Values.Count;
+            }
+
+            private Value NextExpectValue()
+            {
+                if (Next() is Value value)
+                    return value;
+                else
+                    throw new UnexpectedExpression(Expression.Source, "Unexpected end of expression!");
+            }
+
+            public Expression NextExpectExpression(string message)
+            {
+                return NextExpectValue().ExpectExpression(message);
+            }
+
+            public Atom NextExpectAtom(string message)
+            {
+                return NextExpectValue().ExpectAtom(message);
+            }
+
+            public int Index => _index;
+
+            public readonly Expression Expression;
+            private int _index;
+        }
+
         public ASTBuilder(string directory, string mainFile)
         {
             _directory = directory;
@@ -32,21 +77,25 @@ namespace HaloScriptPreprocessor.Parser
             {
                 if (expression.Values.Count == 0)
                     throw new UnexpectedExpression(expression.Source, "Unexpected empty expression!");
-                if (expression.Values[0] is not Atom expressionType)
-                    throw new UnexpectedExpression(expression.Values[0].Source, "Expecting \"global\", \"script\" or \"constglobal\" but got an expression!");
+                expressionReader reader = new(expression);
+
+                Atom expressionType = reader.NextExpectAtom(
+                    "Expecting \"global\", \"script\" or \"constglobal\" but got an expression!");
+                   
                 ReadOnlySpan<char> typeSpan = expressionType.Source.Span;
+
                 if (typeSpan.SequenceEqual(globalSpan))
                 {
                     // build global AST
-                    _ast.Add(buildGlobal(expression));
+                    addNamedNode(buildGlobal(expression));
                 } else if (typeSpan.SequenceEqual(scriptSpan))
                 {
                     // build script AST
-                    _ast.Add(buildScript(expression));
+                    addNamedNode(buildScript(ref reader));
                 } else if (typeSpan.SequenceEqual(constglobalSpan))
                 {
                     // build constant global AST
-                    _ast.Add(buildGlobal(expression));
+                    addNamedNode(buildGlobal(expression));
                 } else if (typeSpan.SequenceEqual(importSpan))
                 {
                     continue; // imports are already handled in parseExpressions
@@ -57,16 +106,21 @@ namespace HaloScriptPreprocessor.Parser
             }
         }
 
-        private AST.Script buildScript(Expression expression)
+        private void addNamedNode(NodeNamed node)
         {
-            Debug.Assert(expression.Values[0].Source.Contents == "script");
-            if (expression.Values.Count < 4)
-                throw new InvalidExpression(expression.Source, "Too short to be a script!");
-            if (expression.Values[1] is not Atom typeAtom)
-                throw new InvalidExpression(expression.Values[1].Source, "Expecting an atom for script type!");
+            NodeNamed? existing = _ast.Get(node.Name.ToString());
+            _ast.Add(node);
+        }
+
+        private AST.Script buildScript(ref expressionReader reader)
+        {
+            Debug.Assert(reader.Expression.Values[0].Source.Contents == "script");
+            if (reader.Expression.Values.Count < 4)
+                throw new InvalidExpression(reader.Expression.Source, "Too short to be a script!");
+            Atom typeAtom = reader.NextExpectAtom("Expecting an atom for script type!");
             ScriptType type = typeAtom.Source.Span.ParseScriptType();
             if (type == ScriptType.Invalid)
-                throw new InvalidExpression(expression.Values[1].Source, $"Invalid script type \"{typeAtom.Source.Contents}\"!");
+                throw new InvalidExpression(typeAtom.Source, $"Invalid script type \"{typeAtom.Source.Contents}\"!");
             switch (type)
             {
                 case ScriptType.Continuous:
@@ -74,31 +128,46 @@ namespace HaloScriptPreprocessor.Parser
                 case ScriptType.Startup:
                 case ScriptType.CommandScript:
                 {
-                        if (expression.Values[2] is not Atom name)
-                            throw new InvalidExpression(expression.Values[2].Source, "Expecting an atom for script name!");
-                        return new AST.Script(expression, type, buildAtom(name), buildCodeList(expression, 3));
+                        Atom name = reader.NextExpectAtom("Expecting an atom for script name!");
+                        return new Script(reader.Expression, type, buildAtom(name), buildCodeList(ref reader));
                     }
                 case ScriptType.Stub:
+                case ScriptType.Macro:
                 case ScriptType.Static:
                     {
-
-                        if (expression.Values[3] is not Atom name)
-                            throw new InvalidExpression(expression.Values[3].Source, "Expecting an atom for script name!");
-                        return new AST.Script(expression, type, buildAtom(name), buildCodeList(expression, 4));
+                        Atom returnTypeAtom = reader.NextExpectAtom("Expecting an atom for script return type!");
+                        Atom name = reader.NextExpectAtom("Expecting an atom for script name!");
+                        List<(AST.ValueType type, string name)>? arguments = null;
+                        if (type == ScriptType.Macro)
+                        {
+                            Expression argumentsExpression = reader.NextExpectExpression("Expecting an arguments expression");
+                            if (argumentsExpression.Values.Count % 2 != 0)
+                                throw new InvalidExpression(argumentsExpression.Source, "Invalid arguments expression");
+                            arguments = new();
+                            expressionReader argumentsReader = new(argumentsExpression);
+                            while (argumentsReader.Next() is Value next)
+                            {
+                                Atom valueAtom = next.ExpectAtom("");
+                                Atom nameAtom = argumentsReader.NextExpectAtom("");
+                                (AST.ValueType type, string name) arg = new(valueAtom.Value.ParseValueType(), nameAtom.Value);
+                                arguments.Add(arg);
+                            }
+                        }
+                        return new Script(reader.Expression, type, buildAtom(name), buildCodeList(ref reader), returnTypeAtom.Value.ParseValueType(), arguments);
                     }
                 default:
-                    throw new Exception("todo");
+                    throw new Exception("unreachable");
             }
-        }
+        } 
 
-        private LinkedList<AST.Value> buildCodeList(Expression expression, int offset)
+        private LinkedList<AST.Value> buildCodeList(ref expressionReader reader)
         {
             LinkedList<AST.Value> list = new();
-            for (int i = offset; i < expression.Values.Count; i++)
+            for (int i = reader.Index; i < reader.Expression.Values.Count; i++)
             {
-                Value currentValue = expression.Values[i];
+                Value currentValue = reader.Expression.Values[i];
                 AST.Value value;
-                if (i + 1 == expression.Values.Count && currentValue is Atom returnValue)
+                if (i + 1 == reader.Expression.Values.Count && currentValue is Atom returnValue)
                     value = new(returnValue, buildAtom(returnValue));
                 else
 #pragma warning disable CS8604 // Possible null reference argument.
@@ -113,13 +182,11 @@ namespace HaloScriptPreprocessor.Parser
         {
             if (expression.Values.Count != 4)
                 throw new InvalidExpression(expression.Source, "Excepting a expression in the format \"(global <type> <name> <value>)\"!");
-            if (expression.Values[1] is not Atom typeAtom)
-                throw new InvalidExpression(expression.Values[1].Source, "Expecting an atom for global type!");
-            if (expression.Values[2] is not Atom nameAtom)
-                throw new InvalidExpression(expression.Values[1].Source, "Expecting an atom for global name!");
+
+            Atom typeAtom = expression.Values[1].ExpectAtom("Expecting an atom for global type!");
+            Atom nameAtom = expression.Values[2].ExpectAtom("Expecting an atom for global name!");
 
             Debug.Assert(expression.Values[0].Source.Contents == "global" || expression.Values[0].Source.Contents == "constglobal");
-
 
             AST.ValueType type = new (typeAtom.Value);
             AST.Global global = new(expression, buildAtom(nameAtom), type, buildValue(expression.Values[3]));

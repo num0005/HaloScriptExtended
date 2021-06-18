@@ -19,9 +19,11 @@ namespace HaloScriptPreprocessor.AST
             _userNameMapping[node.Name.ToString()] = node;
         }
 
-        public NodeNamed Get(string name)
+        public NodeNamed? Get(string name)
         {
-            return _userNameMapping[name];
+            NodeNamed? node = null;
+            _userNameMapping.TryGetValue(name, out node);
+            return node;
         }
 
         private Dictionary<string, NodeNamed> _userNameMapping = new();
