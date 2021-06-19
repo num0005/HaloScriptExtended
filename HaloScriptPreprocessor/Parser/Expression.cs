@@ -144,7 +144,7 @@ namespace HaloScriptPreprocessor.Parser
                 if (IsQuoted)
                 {
                     var sourceSpan = Source.Span;
-                    return sourceSpan.Slice(1, sourceSpan.Length - 1);
+                    return sourceSpan.Slice(1, sourceSpan.Length - 2);
                 }
                 else
                 {

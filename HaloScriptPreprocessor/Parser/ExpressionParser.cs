@@ -121,7 +121,7 @@ namespace HaloScriptPreprocessor.Parser
             Func<bool> inQuoteToken = () => quoteStartLocation is not null;
             Func<SourceLocation, SourceLocation, (TokenType, OneOf<ExpressionSource, SourceLocation>)> endToken = (start, end) =>
             {
-                return (TokenType.Atomic, CreateSource(start, end));
+                return (inQuoteToken() ? TokenType.AtomicQuote : TokenType.Atomic, CreateSource(start, end));
             };
 
             Func<bool, (TokenType, OneOf<ExpressionSource, SourceLocation>)> handleBracket = (bool left) =>

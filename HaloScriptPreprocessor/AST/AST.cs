@@ -26,6 +26,8 @@ namespace HaloScriptPreprocessor.AST
             return node;
         }
 
+        public IReadOnlyDictionary<string, NodeNamed> UserNameMapping => _userNameMapping;
+
         private Dictionary<string, NodeNamed> _userNameMapping = new();
     }
 }

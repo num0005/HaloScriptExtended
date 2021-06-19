@@ -14,8 +14,4 @@
     <PackageReference Include="OneOf" Version="3.0.188" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Emitter\" />
-  </ItemGroup>
-
 </Project>

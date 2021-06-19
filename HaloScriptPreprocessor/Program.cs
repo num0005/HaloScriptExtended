@@ -21,7 +21,10 @@ namespace HaloScriptPreprocessor
             //Parser.ASTBuilder builder = new(parsed);
             Parser.ASTBuilder builder = new("", "01a_tutorial_mission.hsc");
             //Parser.ASTBuilder builder = new("", "crash.lisp");
-            Console.WriteLine(builder.ToString());
+            StringWriter @string = new();
+            Emitter.HaloScriptEmitter emitter = new(@string, builder.Ast);
+            emitter.Emit();
+            Console.WriteLine(@string.ToString());
         }
     }
 }

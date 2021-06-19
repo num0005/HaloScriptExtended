@@ -19,6 +19,8 @@ namespace HaloScriptPreprocessor.AST
         public ValueType ValueType;
         public Value Value;
 
+        public bool IsConst;
+
         public override uint NodeCount => 1 + Value.NodeCount;
     }
 }

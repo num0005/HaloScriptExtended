@@ -61,7 +61,7 @@ namespace HaloScriptPreprocessor.Parser
             _directory = directory;
             _mainFile = mainFile;
             // parse expressions
-            _parseExpressions();
+            parseExpressions();
             // build AST from expressions
             build();
         }
@@ -87,7 +87,7 @@ namespace HaloScriptPreprocessor.Parser
                 if (typeSpan.SequenceEqual(globalSpan))
                 {
                     // build global AST
-                    addNamedNode(buildGlobal(expression));
+                    addNamedNode(buildGlobal(expression, isConst: false));
                 } else if (typeSpan.SequenceEqual(scriptSpan))
                 {
                     // build script AST
@@ -95,7 +95,7 @@ namespace HaloScriptPreprocessor.Parser
                 } else if (typeSpan.SequenceEqual(constglobalSpan))
                 {
                     // build constant global AST
-                    addNamedNode(buildGlobal(expression));
+                    addNamedNode(buildGlobal(expression, isConst: true));
                 } else if (typeSpan.SequenceEqual(importSpan))
                 {
                     continue; // imports are already handled in parseExpressions
@@ -196,7 +196,7 @@ namespace HaloScriptPreprocessor.Parser
             return list;
         }
 
-        private AST.Global buildGlobal(Expression expression)
+        private AST.Global buildGlobal(Expression expression, bool isConst)
         {
             if (expression.Values.Count != 4)
                 throw new InvalidExpression(expression.Source, "Excepting a expression in the format \"(global <type> <name> <value>)\"!");
@@ -208,6 +208,7 @@ namespace HaloScriptPreprocessor.Parser
 
             AST.ValueType type = new (typeAtom.Value);
             AST.Global global = new(expression, buildAtom(nameAtom), type, buildValue(expression.Values[3]));
+            global.IsConst = isConst;
             return global;
         }
 
@@ -258,7 +259,7 @@ namespace HaloScriptPreprocessor.Parser
         /// <summary>
         /// Parse all source files into expressions
         /// </summary>
-        private void _parseExpressions()
+        private void parseExpressions()
         {
             // import the primary file
             importSourceFile(_mainFile);
@@ -342,6 +343,8 @@ namespace HaloScriptPreprocessor.Parser
             _files[fileName] = file;
             return file;
         }
+
+        public AST.AST Ast => _ast;
 
         private readonly ParsedExpressions _parsed = new();
 
