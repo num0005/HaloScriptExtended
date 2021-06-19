@@ -8,17 +8,17 @@ namespace HaloScriptPreprocessor.AST
 {
     public class Global : NodeNamed
     {
-        public Global(Parser.Expression source, Atom name, ValueType type, Value content) : base(source)
+        public Global(Parser.Expression source, Atom name, ValueType type, Value value) : base(source)
         {
             Name = name;
             ValueType = type;
-            Content = content;
+            Value = value;
         }
         public override Atom Name { get; }
 
         public ValueType ValueType;
-        public Value Content;
+        public Value Value;
 
-        public override uint NodeCount => 1 + Content.NodeCount;
+        public override uint NodeCount => 1 + Value.NodeCount;
     }
 }

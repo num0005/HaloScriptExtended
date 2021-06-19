@@ -61,7 +61,7 @@ namespace HaloScriptPreprocessor.Parser
             _directory = directory;
             _mainFile = mainFile;
             // parse expressions
-            parseExpressions();
+            _parseExpressions();
             // build AST from expressions
             build();
         }
@@ -109,7 +109,25 @@ namespace HaloScriptPreprocessor.Parser
         private void addNamedNode(NodeNamed node)
         {
             NodeNamed? existing = _ast.Get(node.Name.ToString());
-            _ast.Add(node);
+            if (existing is null)
+            {
+                _ast.Add(node);
+            } else if (existing is Script oldScript && node is Script newScript)
+            {
+                if (oldScript.ReturnValueType != newScript.ReturnValueType)
+                    throw new UnexpectedExpression(node.Source.Source, "Script return types don't match!");
+                if (newScript.Type == ScriptType.Stub && oldScript.Type == ScriptType.Static)
+                    return; // ignore the stub
+                if (newScript.Type == ScriptType.Static && oldScript.Type == ScriptType.Stub)
+                {
+                    _ast.Add(node);
+                    return;
+                }
+                throw new UnexpectedExpression(node.Source.Source, "Only stub and static scripts can be overloaded");
+            } else
+            {
+                throw new UnexpectedExpression(node.Source.Source, "Invalid name overload");
+            }
         }
 
         private AST.Script buildScript(ref expressionReader reader)
@@ -213,6 +231,7 @@ namespace HaloScriptPreprocessor.Parser
             AST.Atom name;
             if (expression.Values[0] is not Atom atomName)
             {
+                start = 0;
                 if (parentExpressionType is not null && parentExpressionType.ToString() == "cond")
                     name = new AST.Atom("if");
                 else
@@ -223,7 +242,7 @@ namespace HaloScriptPreprocessor.Parser
             LinkedList<AST.Value> arguments = new();
             for (int i = start; i < expression.Values.Count; i++)
                 arguments.AddLast(buildValue(expression.Values[i], name));
-            return new AST.Code(expression, name, arguments);
+            return new Code(expression, name, arguments);
         }
 
         /// <summary>
@@ -239,7 +258,7 @@ namespace HaloScriptPreprocessor.Parser
         /// <summary>
         /// Parse all source files into expressions
         /// </summary>
-        private void parseExpressions()
+        private void _parseExpressions()
         {
             // import the primary file
             importSourceFile(_mainFile);
