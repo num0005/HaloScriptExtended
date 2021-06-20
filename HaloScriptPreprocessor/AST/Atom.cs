@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace HaloScriptPreprocessor.AST
 {
-    public class Atom : Node
+    public class Atom : Node, IEquatable<Atom>
     {
         public Atom(Parser.Atom source) : base(source)
         {
@@ -75,6 +75,15 @@ namespace HaloScriptPreprocessor.AST
                 parser => parser.Value,
                 @string => @string
             );
+        }
+        public bool Equals(Atom? other)
+        {
+            if (other is null)
+                return false;
+            if (ReferenceEquals(this, other))
+                return true;
+
+            return ToSpan().SequenceEqual(other.ToSpan());
         }
     }
 }
