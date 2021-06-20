@@ -115,10 +115,11 @@ namespace HaloScriptPreprocessor.Interpreter
                     bool? result = null;
                     foreach (AST.Value arg in code.Arguments)
                     {
-                        bool? value = interuptBooleanValue(arg);
-                        if (value is null)
+                        if (interuptBooleanValue(arg) is not bool value)
                             return null;
-                        result = (result ?? true) ? value : false;
+                        if (!value)
+                            return new Value(false);
+                        result ??= true;
                     }
                     return (result is null) ? null : new Value((bool)result);
                 }
@@ -127,10 +128,11 @@ namespace HaloScriptPreprocessor.Interpreter
                     bool? result = null;
                     foreach (AST.Value arg in code.Arguments)
                     {
-                        bool? value = interuptBooleanValue(arg);
-                        if (value is null)
+                        if (interuptBooleanValue(arg) is not bool value)
                             return null;
-                        result = (result ?? false) ? true : value;
+                        if (value)
+                            return new Value(true);
+                        result ??= false;
                     }
                     return (result is null) ? null : new Value((bool)result);
                 }
