@@ -17,13 +17,22 @@ namespace HaloScriptPreprocessor.AST
         /// </summary>
         public abstract uint NodeCount { get; }
 
+        /// <summary>
+        /// Parser value the <c>Node</c> was created from or <c>null</c> if it wasn't
+        /// </summary>
         public readonly Parser.Value? Source;
+
+        /// <summary>
+        /// Parent node or null if root node (make sure to update this!)
+        /// </summary>
+        public Node? ParentNode;
     }
 
     public abstract class NodeNamed : Node
     {
         public NodeNamed(Parser.Value source) : base(source)
         {
+            ParentNode = null;
         }
         public abstract Atom Name { get; }
     }

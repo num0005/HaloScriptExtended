@@ -59,14 +59,22 @@ namespace HaloScriptPreprocessor.AST
 
         public override uint NodeCount => 1;
 
-        public override string ToString()
+        public ReadOnlySpan<char> ToSpan()
         {
             if (_value.IsT0)
-                return _value.AsT0.Value;
+                return _value.AsT0.Span;
             if (_value.IsT1)
                 return _value.AsT1;
             Debug.Assert(false, "OneOf should be atom or string!");
-            return "";
+            return new ReadOnlySpan<char>();
+        }
+
+        public override string ToString()
+        {
+            return _value.Match(
+                parser => parser.Value,
+                @string => @string
+            );
         }
     }
 }

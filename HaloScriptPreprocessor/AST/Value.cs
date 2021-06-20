@@ -19,7 +19,7 @@ namespace HaloScriptPreprocessor.AST
             Content = code;
         }
 
-        public readonly OneOf<Atom, Code, Global> Content;
+        public OneOf<Atom, Code, Global, Script> Content;
 
         public override uint NodeCount => Content.IsT1 ? Content.AsT1.NodeCount : 1;
     }

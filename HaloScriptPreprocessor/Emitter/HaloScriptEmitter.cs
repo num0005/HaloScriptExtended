@@ -39,8 +39,8 @@ namespace HaloScriptPreprocessor.Emitter
         {
             Debug.Assert(script.Type != ScriptType.Macro);
             Debug.Assert(script.Type != ScriptType.Invalid);
-            Debug.Assert(script.Type != ScriptType.Stub || script.ReturnValueType is not null);
-            Debug.Assert(script.ReturnValueType is null || script.Type == ScriptType.Stub);
+            Debug.Assert(script.Type != ScriptType.Stub && script.Type != ScriptType.Static || script.ReturnValueType is not null);
+            Debug.Assert(script.ReturnValueType is null || script.Type == ScriptType.Stub || script.Type == ScriptType.Static);
 
             enterRootExpression();
             emitAtom("script");
@@ -69,14 +69,18 @@ namespace HaloScriptPreprocessor.Emitter
             value.Content.Switch(
                 atom => emitAtom(atom),
                 code => emitCode(code),
-                global => emitAtom(global.Name)
+                global => emitAtom(global.Name),
+                script => emitAtom(script.Name)
             );
         }
 
         void emitCode(AST.Code code)
         {
             enterExpression();
-            emitAtom(code.Function);
+            if (code.ParentNode is AST.Code parent && parent.Function.ToSpan().SequenceEqual("cond"))
+                Debug.Print("Found \"cond\" not print \"if\"");
+            else
+                emitAtom(code.Function);
             foreach (Value arg in code.Arguments)
                 emitValue(arg);
             exitExpression();

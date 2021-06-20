@@ -64,6 +64,47 @@ namespace HaloScriptPreprocessor.Parser
             parseExpressions();
             // build AST from expressions
             build();
+
+            resolve();
+        }
+
+        private void resolve()
+        {
+            foreach (KeyValuePair<string, AST.NodeNamed> entry in _ast.UserNameMapping)
+            {
+                NodeNamed rootNode = entry.Value;
+                if (rootNode is Global global)
+                    resolveValue(global.Value, global);
+                if (rootNode is Script script)
+                {
+                    foreach (AST.Value value in script.Codes)
+                        resolveValue(value, script);
+                }
+            }
+        }
+
+        private void resolveValue(AST.Value value, AST.Node parent)
+        {
+            value.ParentNode = parent;
+            if (value.Content.IsT0)
+            { // attempt to resolve the name to a global 
+                NodeNamed? resolved = _ast.Get(value.Content.AsT0.ToString()); // todo, make this use span not a string
+                if (resolved is Global global)
+                    value.Content = global;
+                else if (resolved is Script script)
+                    value.Content = script;
+            } else if (value.Content.IsT1)
+            {
+                resolveCode(value.Content.AsT1, value);
+            }
+        }
+
+        private void resolveCode(AST.Code code, AST.Node parent)
+        {
+            code.ParentNode = parent;
+
+            foreach (AST.Value arg in code.Arguments)
+                resolveValue(arg, code);
         }
 
         private void build()
@@ -228,20 +269,14 @@ namespace HaloScriptPreprocessor.Parser
             if (expression.Values.Count == 0)
                 throw new UnexpectedExpression(expression.Source, "Unexpected empty expression!");
 
-            int start = 1;
+            expressionReader reader = new(expression);
             AST.Atom name;
-            if (expression.Values[0] is not Atom atomName)
-            {
-                start = 0;
-                if (parentExpressionType is not null && parentExpressionType.ToString() == "cond")
-                    name = new AST.Atom("if");
-                else
-                    throw new InvalidExpression(expression.Values[0].Source, "Expecting an atom for name!");
-            } else {
-                name = buildAtom(atomName);
-            }
+            if (parentExpressionType is not null && parentExpressionType.ToSpan().SequenceEqual("cond"))
+                name = new AST.Atom("if");
+            else
+                name = buildAtom(reader.NextExpectAtom("Expecting an atom for name!"));
             LinkedList<AST.Value> arguments = new();
-            for (int i = start; i < expression.Values.Count; i++)
+            for (int i = reader.Index; i < expression.Values.Count; i++)
                 arguments.AddLast(buildValue(expression.Values[i], name));
             return new Code(expression, name, arguments);
         }
@@ -355,5 +390,6 @@ namespace HaloScriptPreprocessor.Parser
         private readonly string _mainFile;
 
         private readonly AST.AST _ast = new();
+        
     }
 }
