@@ -102,7 +102,11 @@ namespace HaloScriptPreprocessor.Parser
         private void resolveCode(AST.Code code, AST.Node parent)
         {
             code.ParentNode = parent;
-
+            NodeNamed? resolved = _ast.Get(code.Function.AsT0.ToString()); // todo, make this use span not a string
+            if (resolved is Global global)
+                throw new UnexpectedAtom(code.Function.AsT0.Source.Source, "Globals are not functions!");
+            else if (resolved is Script script)
+                code.Function = script;
             foreach (AST.Value arg in code.Arguments)
                 resolveValue(arg, code);
         }

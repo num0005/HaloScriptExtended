@@ -77,10 +77,10 @@ namespace HaloScriptPreprocessor.Emitter
         void emitCode(AST.Code code)
         {
             enterExpression();
-            if (code.ParentNode is AST.Code parent && parent.Function.ToSpan().SequenceEqual("cond"))
+            if (code.ParentNode is AST.Code parent && parent.FunctionSpan.SequenceEqual("cond"))
                 Debug.Print("Found \"cond\" not print \"if\"");
             else
-                emitAtom(code.Function);
+                emitAtom(code.FunctionSpan);
             foreach (Value arg in code.Arguments)
                 emitValue(arg);
             exitExpression();
