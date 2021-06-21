@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace HaloScriptPreprocessor.AST
 {
-    class AST
+    public class AST
     {
         public bool IsUserDefinedName(Atom nameAtom)
         {
@@ -24,6 +24,11 @@ namespace HaloScriptPreprocessor.AST
             NodeNamed? node = null;
             _userNameMapping.TryGetValue(name, out node);
             return node;
+        }
+
+        public void Remove(string name)
+        {
+            _userNameMapping.Remove(name);
         }
 
         public IReadOnlyDictionary<string, NodeNamed> UserNameMapping => _userNameMapping;

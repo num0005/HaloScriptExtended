@@ -265,7 +265,7 @@ namespace HaloScriptPreprocessor.Interpreter
             {
                 if (code.Arguments.Count != 0)
                     return null; // todo throw an error here
-                if ()
+                return null; // todo implement
                 
             } else if (userScript.Type == AST.ScriptType.Macro)
             {
