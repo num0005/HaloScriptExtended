@@ -12,10 +12,13 @@ namespace HaloScriptPreprocessor
             //var parsed = parser.GetParsedExpressions();
             //parser = null;
             //Parser.ASTBuilder builder = new(parsed);
-            Parser.ASTBuilder builder = new("", "01a_tutorial_mission.hsc");
+            Parser.ASTBuilder builder = new("", "test.hsc");
             //Parser.ASTBuilder builder = new("", "crash.lisp");
             StringWriter @string = new();
             Emitter.HaloScriptEmitter emitter = new(@string, builder.Ast);
+            Interpreter.Interpreter interpreter = new(builder.Ast);
+            Passes.ConstantGlobalPass constantGlobalPass = new(builder.Ast, interpreter);
+            constantGlobalPass.Run();
             emitter.Emit();
             Console.WriteLine(@string.ToString());
         }

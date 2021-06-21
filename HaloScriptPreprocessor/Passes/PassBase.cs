@@ -74,7 +74,7 @@ namespace HaloScriptPreprocessor.Passes
         {
             bool remove = VisitCodeArgument(argument);
             if (!remove)
-                VisitValue(argument.Value);
+                VisitValueInternal(argument.Value);
             return remove;
         }
 
