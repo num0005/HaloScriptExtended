@@ -10,14 +10,16 @@ namespace HaloScriptPreprocessor.AST
 {
     public class Atom : Node, IEquatable<Atom>
     {
-        public Atom(Parser.Atom source) : base(source)
+        public Atom(Parser.Atom source, Node? parent = null) : base(source)
         {
             _value = source;
+            ParentNode = parent;
         }
-        public Atom(string source) : base(null)
+        public Atom(string source, Node? parent = null) : base(null)
         {
             _value = source;
             _modified = true;
+            ParentNode = parent;
         }
 
 

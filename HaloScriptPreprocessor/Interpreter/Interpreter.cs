@@ -7,53 +7,53 @@ using System.Threading.Tasks;
 
 namespace HaloScriptPreprocessor.Interpreter
 {
-    class Interpreter
+    public class Interpreter
     {
-        Interpreter(AST.AST ast)
+        public Interpreter(AST.AST ast)
         {
             _ast = ast;
         }
-/*
-        Value? interuptScript(AST.Script script)
-        {
-            if (script.Type == AST.ScriptType.Static || script.Type == AST.ScriptType.Macro)
-                return interuptUserFunction(code, script);
-        }
-*/
-        Value? interuptGlobal(AST.Global global)
+        /*
+                Value? interuptScript(AST.Script script)
+                {
+                    if (script.Type == AST.ScriptType.Static || script.Type == AST.ScriptType.Macro)
+                        return interuptUserFunction(code, script);
+                }
+        */
+        public Value? InteruptGlobal(AST.Global global)
         {
             return interupt(global,
-                global => interuptValue(global.Value)
+                global => InteruptValue(global.Value)
                 );
         }
 
-        Value? interuptValue(AST.Value value)
+        public Value? InteruptValue(AST.Value value)
         {
             return interupt(value, value => value.Content.Match(
                 atom => new Value(atom),
-                code => interuptCode(code),
-                global => interuptGlobal(global),
+                code => InteruptCode(code),
+                global => InteruptGlobal(global),
                 script => new Value(script.Name)
                 ));
         }
 
-        bool? interuptBooleanValue(AST.Value value)
+        private bool? interuptBooleanValue(AST.Value value)
         {
-            Value? result = interuptValue(value);
+            Value? result = InteruptValue(value);
             if (result is null || result.GetBoolean() is not bool boolResult)
                 return null;
             return boolResult;
         }
 
-        float? interuptRealValue(AST.Value value)
+        private float? interuptRealValue(AST.Value value)
         {
-            Value? result = interuptValue(value);
+            Value? result = InteruptValue(value);
             if (result is null || result.GetFloat() is not float realResult)
                 return null;
             return realResult;
         }
 
-        (float, float)? interuptBinaryFloatArguments(LinkedList<AST.Value> args)
+        private (float, float)? interuptBinaryFloatArguments(LinkedList<AST.Value> args)
         {
             var first = args.First;
             if (first is null)
@@ -69,7 +69,7 @@ namespace HaloScriptPreprocessor.Interpreter
                 return null;
             return ((float)a, (float)b);
         }
-        (Value, Value)? interuptBinaryArguments(LinkedList<AST.Value> args)
+        private  (Value, Value)? interuptBinaryArguments(LinkedList<AST.Value> args)
         {
             var first = args.First;
             if (first is null)
@@ -79,15 +79,15 @@ namespace HaloScriptPreprocessor.Interpreter
                 return null;
             if (second.Next is not null)
                 return null;
-            Value? a = interuptValue(first.Value);
-            Value? b = interuptValue(second.Value);
+            Value? a = InteruptValue(first.Value);
+            Value? b = InteruptValue(second.Value);
             if (a is null || b is null)
                 return null;
             return (a, b);
         }
 
 
-        Value? interuptCode(AST.Code code)
+        public Value? InteruptCode(AST.Code code)
         {
             return interupt(code, code =>
             {
@@ -102,9 +102,9 @@ namespace HaloScriptPreprocessor.Interpreter
                     if (interuptBooleanValue(first.Value) is not bool condition)
                         return null;
                     if (condition)
-                        return interuptValue(second.Value);
+                        return InteruptValue(second.Value);
                     else if (third is LinkedListNode<AST.Value> elseVal)
-                        return interuptValue(elseVal.Value);
+                        return InteruptValue(elseVal.Value);
                     else
                         return null;
                 } else if (functionName.SequenceEqual("cond"))
@@ -283,7 +283,7 @@ namespace HaloScriptPreprocessor.Interpreter
             return result;
         }
 
-        private bool isInCache(AST.Node node)
+        public bool IsInCache(AST.Node node)
         {
             return _valueCache.ContainsKey(node);
         }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HaloScriptPreprocessor.Interpreter
 {
-    class Value
+    public class Value
     {
         public Value()
         {
@@ -154,6 +154,18 @@ namespace HaloScriptPreprocessor.Interpreter
                         return null;
                     return @bool == otherValue;
                 }
+            );
+        }
+
+        public string GetString()
+        {
+            return Contents.Match(
+                null,
+                atom => atom.ToString(),
+                @long => @long.ToString(),
+                @short => @short.ToString(),
+                real => real.ToString(),
+                boolean => boolean ? "true" : "false"
             );
         }
     }
