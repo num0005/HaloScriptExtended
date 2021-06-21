@@ -40,14 +40,42 @@ namespace HaloScriptPreprocessor.Passes
         }
 
         protected abstract void VisitCode(AST.Code code);
+
+        private void VisitArgsInteral(LinkedList<AST.Value> arguments)
+        {
+            LinkedListNode<AST.Value>? arg = arguments.First;
+            while (arg is not null)
+            {
+                bool remove = VisitCodeArgumentInternal(arg);
+                if (remove)
+                {
+                    var nextArg = arg.Next;
+                    arguments.Remove(arg);
+                    arg = nextArg;
+                }
+                else
+                {
+                    arg = arg.Next;
+                }
+            }
+        }
+
         private void VisitCodeInternal(AST.Code code)
         {
             if (RecordEnterNode(code)) // we visited this node already
                 return;
             VisitCode(code);
             code.Function.Switch(_ => { }, script => VisitScriptInternal(script.Name.ToString(), script));
-            foreach (AST.Value arg in code.Arguments)
-                VisitValueInternal(arg);
+            VisitArgsInteral(code.Arguments);
+        }
+
+        protected abstract bool VisitCodeArgument(LinkedListNode<AST.Value> argument);
+        private bool VisitCodeArgumentInternal(LinkedListNode<AST.Value> argument)
+        {
+            bool remove = VisitCodeArgument(argument);
+            if (!remove)
+                VisitValue(argument.Value);
+            return remove;
         }
 
         protected abstract bool VisitScript(AST.Script script);
@@ -58,7 +86,7 @@ namespace HaloScriptPreprocessor.Passes
             if (VisitScript(script))
                 _removeList.Add(name);
             else
-                script.Codes.ToList().ForEach(value => VisitValueInternal(value));
+                VisitArgsInteral(script.Codes);
         }
 
         /// <summary>
