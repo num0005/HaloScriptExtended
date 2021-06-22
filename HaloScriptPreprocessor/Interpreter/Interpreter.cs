@@ -22,6 +22,8 @@ namespace HaloScriptPreprocessor.Interpreter
         */
         public Value? InteruptGlobal(AST.Global global)
         {
+            if (!global.IsConst)
+                return null;
             return interupt(global,
                 global => InteruptValue(global.Value)
                 );

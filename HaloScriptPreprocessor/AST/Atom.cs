@@ -87,5 +87,10 @@ namespace HaloScriptPreprocessor.AST
 
             return ToSpan().SequenceEqual(other.ToSpan());
         }
+
+        public override Atom Clone(Node? parent = null)
+        {
+            return Value.Match(parser => new Atom(parser, parent), @string => new Atom(@string, parent));
+        }
     }
 }

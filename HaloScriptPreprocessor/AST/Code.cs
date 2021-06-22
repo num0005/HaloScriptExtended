@@ -10,6 +10,7 @@ namespace HaloScriptPreprocessor.AST
 {
     public class Code : Node
     {
+        private Code(Parser.Value source) : base(source) {}
         public Code(Parser.Expression source, Atom function, LinkedList<Value> arguments) : base(source)
         {
             Function = function;
@@ -17,7 +18,7 @@ namespace HaloScriptPreprocessor.AST
         }
 
         public OneOf<Atom, Script> Function;
-        public LinkedList<Value> Arguments;
+        public LinkedList<Value> Arguments = new();
 
         public ReadOnlySpan<char> FunctionSpan
         {
@@ -30,6 +31,29 @@ namespace HaloScriptPreprocessor.AST
                 Debug.Fail("unreachable");
                 return "";
             }
+        }
+
+        /// <summary>
+        /// Set the contents from another <c>Code</c> node expect parent
+        /// </summary>
+        /// <param name="other"></param>
+        public void SetContents(Code other)
+        {
+            this.Arguments = other.Arguments;
+            this.Function = other.Function;
+        }
+
+        public override Code Clone(Node? parent = null)
+        {
+#pragma warning disable CS8604 // Possible null reference argument.
+            Code clonedCode = new(Source);
+#pragma warning restore CS8604 // Possible null reference argument.
+            LinkedList<Value> clonedArguments = new();
+            foreach (Value arg in Arguments)
+                clonedArguments.Append(arg.Clone(clonedCode));
+            clonedCode.Arguments = clonedArguments;
+            Function.Switch(atom => clonedCode.Function = atom.Clone(clonedCode), script => clonedCode.Function = script);
+            return clonedCode;
         }
 
         public override uint NodeCount
