@@ -24,14 +24,21 @@ namespace HaloScriptPreprocessor.Passes
             Interpreter.Value? interuptedValue = _interpreter.InterpretValue(value);
             if (interuptedValue is not null)
                 value.Content = new AST.Atom(interuptedValue.GetString(), value);
+            else if (value.Content.Value is Code code && SimplifyCode(code) is Code simpleCode)
+                value.Content = simpleCode;
+        }
+
+        private Code? SimplifyCode(Code code)
+        {
+            if (code.FunctionSpan.SequenceEqual("begin") && code.Arguments.Count == 1
+                    && code.Arguments.First().Content.Value is Code beginArg)
+                return beginArg.Clone(code.ParentNode);
+
+            return null;
         }
 
         protected override void OnVisitCode(Code code)
         {
-            if (code.FunctionSpan.SequenceEqual("begin") && code.Arguments.Count == 1)
-            {
-
-            }
 
         }
 
