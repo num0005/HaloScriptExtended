@@ -10,27 +10,27 @@ namespace HaloScriptPreprocessor.Passes
     class LoopUnrolling : PassBase
     {
         public LoopUnrolling(AST.AST ast) : base(ast) { }
-        protected override void VisitCode(Code code)
+        protected override void OnVisitCode(Code code)
         {
             throw new NotImplementedException();
         }
 
-        protected override bool VisitCodeArgument(LinkedListNode<Value> argument)
+        protected override bool OnVisitCodeArgument(LinkedListNode<Value> argument)
         {
             throw new NotImplementedException();
         }
 
-        protected override bool VisitGlobal(Global global)
+        protected override bool OnVisitGlobal(Global global)
         {
-            throw new NotImplementedException();
+            return false;
         }
 
-        protected override bool VisitScript(Script script)
+        protected override bool OnVisitScript(Script script)
         {
-            throw new NotImplementedException();
+            return false;
         }
 
-        protected override void VisitValue(Value value)
+        protected override void OnVisitValue(Value value)
         {
             throw new NotImplementedException();
         }

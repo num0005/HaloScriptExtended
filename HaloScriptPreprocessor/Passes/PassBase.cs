@@ -17,29 +17,30 @@ namespace HaloScriptPreprocessor.Passes
         /// </summary>
         /// <param name="global"></param>
         /// <returns>Whatever the global should be removed</returns>
-        protected abstract bool VisitGlobal(AST.Global global);
+        protected abstract bool OnVisitGlobal(AST.Global global);
 
-        private void VisitGlobalInternal(string name, AST.Global global)
+        public void VisitGlobal(AST.Global global, string? name = null)
         {
             if (RecordEnterNode(global)) // we visited this node already
                 return;
-            if (VisitGlobal(global))
+            if (name is null)
+                name = global.Name.ToString();
+            if (OnVisitGlobal(global))
                 _removeList.Add(name);
             else
-                VisitValueInternal(global.Value);
+                VisitValue(global.Value);
         }
 
-        protected abstract void VisitValue(AST.Value value);
+        protected abstract void OnVisitValue(AST.Value value);
 
-        private void VisitValueInternal(AST.Value value)
+        public void VisitValue(AST.Value value)
         {
             if (RecordEnterNode(value)) // we visited this node already
                 return;
-            VisitValue(value);
-            value.Content.Switch(_ => { }, code => VisitCodeInternal(code), global => VisitGlobalInternal(global.Name.ToString(), global), script => VisitScriptInternal(script.Name.ToString(), script));
+            OnVisitValue(value);
+            value.Content.Switch(_ => { }, code => VisitCode(code), global => VisitGlobal(global, global.Name.ToString()), script => VisitScript(script, script.Name.ToString()));
         }
 
-        protected abstract void VisitCode(AST.Code code);
 
         private void VisitArgsInteral(LinkedList<AST.Value> arguments)
         {
@@ -59,31 +60,33 @@ namespace HaloScriptPreprocessor.Passes
                 }
             }
         }
-
-        private void VisitCodeInternal(AST.Code code)
+        protected abstract void OnVisitCode(AST.Code code);
+        public void VisitCode(AST.Code code)
         {
             if (RecordEnterNode(code)) // we visited this node already
                 return;
-            VisitCode(code);
-            code.Function.Switch(_ => { }, script => VisitScriptInternal(script.Name.ToString(), script));
+            OnVisitCode(code);
+            code.Function.Switch(_ => { }, script => VisitScript(script));
             VisitArgsInteral(code.Arguments);
         }
 
-        protected abstract bool VisitCodeArgument(LinkedListNode<AST.Value> argument);
+        protected abstract bool OnVisitCodeArgument(LinkedListNode<AST.Value> argument);
         private bool VisitCodeArgumentInternal(LinkedListNode<AST.Value> argument)
         {
-            bool remove = VisitCodeArgument(argument);
+            bool remove = OnVisitCodeArgument(argument);
             if (!remove)
-                VisitValueInternal(argument.Value);
+                VisitValue(argument.Value);
             return remove;
         }
 
-        protected abstract bool VisitScript(AST.Script script);
-        private void VisitScriptInternal(string name, AST.Script script)
+        protected abstract bool OnVisitScript(AST.Script script);
+        private void VisitScript(AST.Script script, string? name = null)
         {
             if (RecordEnterNode(script)) // we visited this node already
                 return;
-            if (VisitScript(script))
+            if (name is null)
+                name = script.Name.ToString();
+            if (OnVisitScript(script))
                 _removeList.Add(name);
             else
                 VisitArgsInteral(script.Codes);
@@ -97,9 +100,9 @@ namespace HaloScriptPreprocessor.Passes
             foreach (KeyValuePair<string, AST.NodeNamed> entry in _ast.UserNameMapping)
             {
                 if (entry.Value is AST.Script script)
-                    VisitScriptInternal(entry.Key, script);
+                    VisitScript(script, entry.Key);
                 else if (entry.Value is AST.Global global)
-                    VisitGlobalInternal(entry.Key, global);
+                    VisitGlobal(global, entry.Key);
             }
 
             foreach (string toRemove in _removeList)

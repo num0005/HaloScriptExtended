@@ -13,26 +13,26 @@ namespace HaloScriptPreprocessor.Passes
         {
             _interpreter = interpreter;
         }
-        protected override void VisitCode(Code code)
+        protected override void OnVisitCode(Code code)
         {
         }
 
-        protected override bool VisitCodeArgument(LinkedListNode<Value> argument)
+        protected override bool OnVisitCodeArgument(LinkedListNode<Value> argument)
         {
             return false;
         }
 
-        protected override bool VisitGlobal(Global global)
+        protected override bool OnVisitGlobal(Global global)
         {
             return global.IsConst;
         }
 
-        protected override bool VisitScript(Script script)
+        protected override bool OnVisitScript(Script script)
         {
             return false;
         }
 
-        protected override void VisitValue(Value value)
+        protected override void OnVisitValue(Value value)
         {
             if (value.Content.Value is Global global && global.IsConst)
             {
