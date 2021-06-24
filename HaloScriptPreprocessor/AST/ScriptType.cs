@@ -51,7 +51,7 @@ namespace HaloScriptPreprocessor.AST
                 return ScriptType.Dormant;
             else if (str.SequenceEqual("static"))
                 return ScriptType.Static;
-            else if (str.SequenceEqual("Stub"))
+            else if (str.SequenceEqual("stub"))
                 return ScriptType.Stub;
             else if (str.SequenceEqual("command_script"))
                 return ScriptType.CommandScript;

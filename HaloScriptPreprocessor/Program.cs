@@ -30,6 +30,8 @@ namespace HaloScriptPreprocessor
             string sourceDirectory = Path.Combine(scenarioDirectory, "hscx_scripts");
             string outputDirectory = Path.Combine(scenarioDirectory, "scripts");
 
+            Directory.CreateDirectory(outputDirectory);
+
             Console.WriteLine($"Processing .hsc files in {sourceDirectory} and saving to {outputDirectory}");
             string[] files = Directory.GetFiles(sourceDirectory, "*.hsc");
             foreach (string file in files)
