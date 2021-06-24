@@ -5,17 +5,9 @@ namespace HaloScriptPreprocessor
 {
     class Program
     {
-        static void Main(string[] args)
+        static void ProcessFile(string sourceDirectory, string outputDirectory, string file)
         {
-            //string a_tutorial_mission = File.ReadAllText("01a_tutorial_mission.lisp");
-            //Parser.ExpressionParser parser = new (a_tutorial_mission);
-            //var parsed = parser.GetParsedExpressions();
-            //parser = null;
-            //Parser.ASTBuilder builder = new(parsed);
-            Parser.ASTBuilder builder = new("", "test.hsc");
-            //Parser.ASTBuilder builder = new("", "crash.lisp");
-            StringWriter @string = new();
-            Emitter.HaloScriptEmitter emitter = new(@string, builder.Ast);
+            Parser.ASTBuilder builder = new(sourceDirectory, file);
             Interpreter.Interpreter interpreter = new(builder.Ast);
             Passes.ConstantGlobalPass constantGlobalPass = new(builder.Ast, interpreter);
             Passes.LoopUnrolling loopUnrolling = new(builder.Ast, interpreter);
@@ -23,8 +15,31 @@ namespace HaloScriptPreprocessor
             constantGlobalPass.Run();
             loopUnrolling.Run();
             macroExpansion.Run();
-            emitter.Emit();
-            Console.WriteLine(@string.ToString());
+            using (StreamWriter writer = new StreamWriter(Path.Combine(outputDirectory, file)))
+            {
+                Emitter.HaloScriptEmitter emitter = new(@writer, builder.Ast);
+                emitter.Emit();
+            }
+        }
+        static void Main(string[] args)
+        {
+            if (args.Length != 1)
+                Console.WriteLine(System.AppDomain.CurrentDomain.FriendlyName + "<scenario directory>");
+            string scenarioDirectory = args[0];
+
+            string sourceDirectory = Path.Combine(scenarioDirectory, "hscx_scripts");
+            string outputDirectory = Path.Combine(scenarioDirectory, "scripts");
+
+            Console.WriteLine($"Processing .hsc files in {sourceDirectory} and saving to {outputDirectory}");
+            string[] files = Directory.GetFiles(sourceDirectory, "*.hsc");
+            foreach (string file in files)
+            {
+                string relativeFilePath = Path.GetRelativePath(sourceDirectory, file);
+                Console.WriteLine($"Processing {relativeFilePath}");
+                ProcessFile(sourceDirectory, outputDirectory, relativeFilePath);
+            }
+
+            Console.WriteLine("Done!");
         }
     }
 }
