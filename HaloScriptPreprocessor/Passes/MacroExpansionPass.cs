@@ -10,32 +10,52 @@ namespace HaloScriptPreprocessor.Passes
     public class MacroExpansionPass : PassBase
     {
         public MacroExpansionPass(AST.AST ast) : base(ast) { }
+
+        List<Value>? expandMacro(Code code, Node parent)
+        {
+            if (code.Function.Value is not Script script || script.Type != ScriptType.Macro)
+                return null;
+            List<Value> expandedMacro = new();
+            if (script.Arguments is null)
+                throw new Exception("Invalid AST - macro without arguments!");
+            if (script.Arguments.Count != code.Arguments.Count)
+                throw new Parser.InvalidExpression(code.Source.Source, "Wrong number of arguments!");
+
+            List<Value> codeArgs = new(code.Arguments);
+            Dictionary<Value, Value> mapping = new();
+            for (int i = 0; i < codeArgs.Count; i++)
+                mapping[new(null, script.Arguments[i].name)] = codeArgs[i];
+
+            foreach (Value value in script.Codes)
+            {
+                Value rewrittenValue = value.Clone(parent);
+                rewrittenValue.Rewrite(mapping);
+                expandedMacro.Add(rewrittenValue);
+            }
+            return expandedMacro;
+        }
         protected override void OnVisitCode(Code code)
         {
-            if (code.Function.Value is Script script && script.Type == ScriptType.Macro)
+            if (expandMacro(code, code) is List<Value> expanded)
             {
-                if (script.Arguments is null)
-                    throw new Exception("Invalid AST - macro without arguments!");
-                if (script.Arguments.Count != code.Arguments.Count)
-                    throw new Parser.InvalidExpression(code.Source.Source, "Wrong number of arguments!");
-                List<Value> codeArgs = new(code.Arguments);
-                Dictionary<Value, Value> mapping = new();
-                for (int i = 0; i < codeArgs.Count; i++)
-                    mapping[new(null, script.Arguments[i].name)] = codeArgs[i];
-
                 code.Function = new Atom("begin");
                 code.Arguments.Clear();
-                foreach (Value value in script.Codes)
-                {
-                    Value rewrittenValue = value.Clone(code);
-                    rewrittenValue.Rewrite(mapping);
-                    code.Arguments.AddLast(rewrittenValue);
-                }
+                foreach (Value value in expanded)
+                    code.Arguments.AddLast(value);
             }
         }
 
         protected override bool OnVisitCodeArgument(LinkedListNode<Value> argument, Node parent)
         {
+            if (parent is not Script || argument.List is not LinkedList<Value>)
+                return false;
+            if (argument.Value.Content.Value is Code code && expandMacro(code, parent) is List<Value> expanded)
+            {
+                LinkedListNode<Value> lastNode = argument;
+                foreach (Value value in expanded)
+                    lastNode = argument.List.AddAfter(lastNode, value);
+                return true; // remove the macro call
+            }
             return false;
         }
 
