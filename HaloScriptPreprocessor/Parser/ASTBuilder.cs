@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HaloScriptPreprocessor.Parser
 {
@@ -93,7 +91,8 @@ namespace HaloScriptPreprocessor.Parser
                     value.Content = global;
                 else if (resolved is Script script)
                     value.Content = script;
-            } else if (value.Content.IsT1)
+            }
+            else if (value.Content.IsT1)
             {
                 resolveCode(value.Content.AsT1, value);
             }
@@ -113,10 +112,10 @@ namespace HaloScriptPreprocessor.Parser
 
         private void build()
         {
-            ReadOnlySpan<char> globalSpan      = "global".AsSpan();
+            ReadOnlySpan<char> globalSpan = "global".AsSpan();
             ReadOnlySpan<char> constglobalSpan = "constglobal".AsSpan();
-            ReadOnlySpan<char> scriptSpan      = "script".AsSpan();
-            ReadOnlySpan<char> importSpan      = "import".AsSpan();
+            ReadOnlySpan<char> scriptSpan = "script".AsSpan();
+            ReadOnlySpan<char> importSpan = "import".AsSpan();
 
             foreach (Expression expression in _parsed.Expressions)
             {
@@ -126,25 +125,29 @@ namespace HaloScriptPreprocessor.Parser
 
                 Atom expressionType = reader.NextExpectAtom(
                     "Expecting \"global\", \"script\" or \"constglobal\" but got an expression!");
-                   
+
                 ReadOnlySpan<char> typeSpan = expressionType.Source.Span;
 
                 if (typeSpan.SequenceEqual(globalSpan))
                 {
                     // build global AST
                     addNamedNode(buildGlobal(expression, isConst: false));
-                } else if (typeSpan.SequenceEqual(scriptSpan))
+                }
+                else if (typeSpan.SequenceEqual(scriptSpan))
                 {
                     // build script AST
                     addNamedNode(buildScript(ref reader));
-                } else if (typeSpan.SequenceEqual(constglobalSpan))
+                }
+                else if (typeSpan.SequenceEqual(constglobalSpan))
                 {
                     // build constant global AST
                     addNamedNode(buildGlobal(expression, isConst: true));
-                } else if (typeSpan.SequenceEqual(importSpan))
+                }
+                else if (typeSpan.SequenceEqual(importSpan))
                 {
                     continue; // imports are already handled in parseExpressions
-                } else
+                }
+                else
                 {
                     throw new UnexpectedExpression(expressionType.Source, $"Expecting \"global\", \"script\" or \"constglobal\" but got \"{typeSpan.ToString()}\"!");
                 }
@@ -157,7 +160,8 @@ namespace HaloScriptPreprocessor.Parser
             if (existing is null)
             {
                 _ast.Add(node);
-            } else if (existing is Script oldScript && node is Script newScript)
+            }
+            else if (existing is Script oldScript && node is Script newScript)
             {
                 if (oldScript.ReturnValueType != newScript.ReturnValueType)
                     throw new UnexpectedExpression(node.Source.Source, "Script return types don't match!");
@@ -169,7 +173,8 @@ namespace HaloScriptPreprocessor.Parser
                     return;
                 }
                 throw new UnexpectedExpression(node.Source.Source, "Only stub and static scripts can be overloaded");
-            } else
+            }
+            else
             {
                 throw new UnexpectedExpression(node.Source.Source, "Invalid name overload");
             }
@@ -190,7 +195,7 @@ namespace HaloScriptPreprocessor.Parser
                 case ScriptType.Dormant:
                 case ScriptType.Startup:
                 case ScriptType.CommandScript:
-                {
+                    {
                         Atom name = reader.NextExpectAtom("Expecting an atom for script name!");
                         return new Script(reader.Expression, type, buildAtom(name), buildCodeList(ref reader));
                     }
@@ -221,7 +226,7 @@ namespace HaloScriptPreprocessor.Parser
                 default:
                     throw new Exception("unreachable");
             }
-        } 
+        }
 
         private LinkedList<AST.Value> buildCodeList(ref expressionReader reader)
         {
@@ -251,7 +256,7 @@ namespace HaloScriptPreprocessor.Parser
 
             Debug.Assert(expression.Values[0].Source.Contents == "global" || expression.Values[0].Source.Contents == "constglobal");
 
-            AST.ValueType type = new (typeAtom.Value);
+            AST.ValueType type = new(typeAtom.Value);
             AST.Global global = new(expression, buildAtom(nameAtom), type, buildValue(expression.Values[3]));
             global.IsConst = isConst;
             return global;
@@ -378,7 +383,7 @@ namespace HaloScriptPreprocessor.Parser
         /// <returns>The source file object</returns>
         private SourceFile addSourceFile(string fileName, string data, Expression? sourceExpression)
         {
-            SourceFile file = new (Data: data, FileName: fileName, SourceExpression: sourceExpression);
+            SourceFile file = new(Data: data, FileName: fileName, SourceExpression: sourceExpression);
             _files[fileName] = file;
             return file;
         }
@@ -394,6 +399,6 @@ namespace HaloScriptPreprocessor.Parser
         private readonly string _mainFile;
 
         private readonly AST.AST _ast = new();
-        
+
     }
 }

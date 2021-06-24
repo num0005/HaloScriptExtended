@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HaloScriptPreprocessor.Interpreter
 {
@@ -71,7 +69,7 @@ namespace HaloScriptPreprocessor.Interpreter
                 return null;
             return ((float)a, (float)b);
         }
-        private  (Value, Value)? interpretBinaryArguments(LinkedList<AST.Value> args)
+        private (Value, Value)? interpretBinaryArguments(LinkedList<AST.Value> args)
         {
             var first = args.First;
             if (first is null)
@@ -109,10 +107,12 @@ namespace HaloScriptPreprocessor.Interpreter
                         return InterpretValue(elseVal.Value);
                     else
                         return null;
-                } else if (functionName.SequenceEqual("cond"))
+                }
+                else if (functionName.SequenceEqual("cond"))
                 {
                     return null; // todo
-                } else if (functionName.SequenceEqual("and"))
+                }
+                else if (functionName.SequenceEqual("and"))
                 {
                     bool? result = null;
                     foreach (AST.Value arg in code.Arguments)
@@ -204,14 +204,16 @@ namespace HaloScriptPreprocessor.Interpreter
                         result = MathF.Min((result ?? number), number);
                     }
                     return (result is null) ? null : new Value((float)result);
-                } else if (functionName.SequenceEqual("="))
+                }
+                else if (functionName.SequenceEqual("="))
                 {
                     if (interpretBinaryArguments(code.Arguments) is not (Value, Value) args)
                         return null;
                     if (args.Item1.IsEqual(args.Item2) is not bool equal)
                         return null;
                     return new Value(equal);
-                }  else if (functionName.SequenceEqual("!="))
+                }
+                else if (functionName.SequenceEqual("!="))
                 {
                     if (interpretBinaryArguments(code.Arguments) is not (Value, Value) args)
                         return null;
@@ -268,8 +270,9 @@ namespace HaloScriptPreprocessor.Interpreter
                 if (code.Arguments.Count != 0)
                     return null; // todo throw an error here
                 return null; // todo implement
-                
-            } else if (userScript.Type == AST.ScriptType.Macro)
+
+            }
+            else if (userScript.Type == AST.ScriptType.Macro)
             {
                 return null; // todo implement
             }

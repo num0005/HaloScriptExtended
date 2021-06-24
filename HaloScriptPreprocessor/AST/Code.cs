@@ -2,15 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HaloScriptPreprocessor.AST
 {
     public class Code : Node
     {
-        private Code(Parser.Value source) : base(source) {}
+        private Code(Parser.Value source) : base(source) { }
         public Code(Parser.Expression source, Atom function, LinkedList<Value> arguments) : base(source)
         {
             Function = function;

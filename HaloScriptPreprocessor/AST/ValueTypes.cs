@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace HaloScriptPreprocessor.AST
+﻿namespace HaloScriptPreprocessor.AST
 {
     // todo enum
     public class ValueType
@@ -29,7 +23,7 @@ namespace HaloScriptPreprocessor.AST
         }
 
         public static string ToSyntaxString(this ValueType type)
-        {  
+        {
             return type.ToString();
         }
     }

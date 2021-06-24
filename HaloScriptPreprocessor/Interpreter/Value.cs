@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HaloScriptPreprocessor.Interpreter
 {
@@ -39,13 +35,14 @@ namespace HaloScriptPreprocessor.Interpreter
         /// <summary>
         /// HaloScript nothing
         /// </summary>
-        public struct Void {};
+        public struct Void { };
         public OneOf.OneOf<Void, AST.Atom, long, short, float, bool> Contents;
         public long? GetLong()
         {
             return Contents.Match<long?>(
                 null,
-                atom => {
+                atom =>
+                {
                     long result;
                     if (long.TryParse(atom.ToSpan(), out result))
                         return result;
@@ -63,14 +60,16 @@ namespace HaloScriptPreprocessor.Interpreter
         {
             return Contents.Match<short?>(
                 null,
-                atom => {
+                atom =>
+                {
                     short result;
                     if (short.TryParse(atom.ToSpan(), out result))
                         return result;
                     else
                         return null;
                 },
-                @long => {
+                @long =>
+                {
                     if (@long > short.MaxValue || @long < short.MinValue)
                         return null;
                     return (short)@long;
@@ -85,7 +84,8 @@ namespace HaloScriptPreprocessor.Interpreter
         {
             return Contents.Match<float?>(
                 null,
-                atom => {
+                atom =>
+                {
                     float result;
                     if (float.TryParse(atom.ToSpan(), out result))
                         return result;
@@ -103,7 +103,8 @@ namespace HaloScriptPreprocessor.Interpreter
         {
             return Contents.Match<bool?>(
                 null,
-                atom => {
+                atom =>
+                {
                     ReadOnlySpan<char> span = atom.ToSpan();
                     float real;
                     long @long;
@@ -130,25 +131,29 @@ namespace HaloScriptPreprocessor.Interpreter
             return Contents.Match<bool?>(
                 _ => false,
                 _ => other.Equals(this), // uno reverso
-                @long => {
+                @long =>
+                {
                     var otherValue = other.GetLong();
                     if (otherValue is null)
                         return null;
                     return @long == otherValue;
-                    },
-                @short => {
+                },
+                @short =>
+                {
                     var otherValue = other.GetShort();
                     if (otherValue is null)
                         return null;
                     return @short == otherValue;
                 },
-                @float => {
+                @float =>
+                {
                     var otherValue = other.GetFloat();
                     if (otherValue is null)
                         return null;
                     return @float == otherValue;
                 },
-                @bool => {
+                @bool =>
+                {
                     var otherValue = other.GetBoolean();
                     if (otherValue is null)
                         return null;

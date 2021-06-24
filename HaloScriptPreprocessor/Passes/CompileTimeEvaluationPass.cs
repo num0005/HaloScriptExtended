@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HaloScriptPreprocessor.Passes
 {
@@ -39,7 +37,7 @@ namespace HaloScriptPreprocessor.Passes
                 Interpreter.Value? predicate = _interpreter.InterpretValue(code.Arguments.First());
                 if (predicate is null)
                     return code;
-               // if (predicate.GetBoolean() is true)
+                // if (predicate.GetBoolean() is true)
 
 
             }

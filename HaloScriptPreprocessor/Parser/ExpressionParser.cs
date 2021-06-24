@@ -184,7 +184,8 @@ namespace HaloScriptPreprocessor.Parser
                         if (_inComment)
                             continue;
                         // check if the previous character allows a quote to start
-                        if (!inQuoteToken() && _currentOffset != 0) {
+                        if (!inQuoteToken() && _currentOffset != 0)
+                        {
                             char previous = data[_currentOffset - 1];
                             switch (previous)
                             {
@@ -205,7 +206,8 @@ namespace HaloScriptPreprocessor.Parser
                         if (inQuoteToken())
                         {
                             return endToken(quoteStartLocation.Value, new SourceLocation(_currentOffset + 1, _currentLine, _currentColunm + 1));
-                        } else
+                        }
+                        else
                         {
                             quoteStartLocation = getLocation();
                             continue;
@@ -216,7 +218,7 @@ namespace HaloScriptPreprocessor.Parser
                             _inComment = true;
                             if (inToken())
                                 return endToken(tokenStart.Value, getLocation());
-                            
+
                         }
                         continue;
                     case ' ':

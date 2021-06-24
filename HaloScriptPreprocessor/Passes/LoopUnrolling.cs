@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HaloScriptPreprocessor.Passes
 {
@@ -92,7 +90,7 @@ namespace HaloScriptPreprocessor.Passes
                 List<Value> unrolledLoop = CreateUnrolledLoop(code, code);
                 // Replace the loop expression with a begin expression
                 code.Function = new Atom("begin");
-                code.Arguments = new (unrolledLoop);
+                code.Arguments = new(unrolledLoop);
             }
         }
 

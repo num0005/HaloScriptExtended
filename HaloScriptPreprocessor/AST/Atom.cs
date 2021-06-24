@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HaloScriptPreprocessor.AST
 {
@@ -24,7 +22,8 @@ namespace HaloScriptPreprocessor.AST
 
 
         private OneOf<Parser.Atom, string> _value;
-        public OneOf<Parser.Atom, string> Value {
+        public OneOf<Parser.Atom, string> Value
+        {
             get => _value;
             set
             {

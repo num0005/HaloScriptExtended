@@ -1,11 +1,9 @@
-﻿using System;
+﻿using HaloScriptPreprocessor.AST;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
 using System.Diagnostics;
-using HaloScriptPreprocessor.AST;
+using System.IO;
+using System.Linq;
 
 namespace HaloScriptPreprocessor.Emitter
 {
@@ -25,10 +23,12 @@ namespace HaloScriptPreprocessor.Emitter
                 if (entry.Value is AST.Script script)
                 {
                     emitScript(script);
-                } else if (entry.Value is AST.Global global)
+                }
+                else if (entry.Value is AST.Global global)
                 {
                     emitGlobal(global);
-                } else
+                }
+                else
                 {
                     Debug.Fail("unreachable!");
                 }
