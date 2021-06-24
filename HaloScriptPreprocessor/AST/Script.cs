@@ -45,5 +45,17 @@ namespace HaloScriptPreprocessor.AST
                 clonedScript.Codes.Append(code.Clone(clonedScript));
             return clonedScript;
         }
+
+        public override void Rewrite(Dictionary<Value, Value> mapping)
+        {
+            LinkedListNode<Value>? arg = Codes.First;
+            while (arg is not null)
+            {
+                if (mapping.ContainsKey(arg.Value))
+                    arg.Value = mapping[arg.Value].Clone(this); // clone so parent is set correctly
+                arg.Value.Rewrite(mapping);
+                arg = arg.Next;
+            }
+        }
     }
 }

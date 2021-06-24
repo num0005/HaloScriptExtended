@@ -36,5 +36,10 @@ namespace HaloScriptPreprocessor.AST
 
             return clonedGlobal;
         }
+
+        public override void Rewrite(Dictionary<Value, Value> mapping)
+        {
+            Value.Rewrite(mapping);
+        }
     }
 }

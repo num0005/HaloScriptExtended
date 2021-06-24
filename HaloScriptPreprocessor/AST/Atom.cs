@@ -78,6 +78,17 @@ namespace HaloScriptPreprocessor.AST
                 @string => @string
             );
         }
+
+        override public bool Equals(object? other)
+        {
+            if (ReferenceEquals(this, other))
+                return true;
+            if (other is null)
+                return false;
+            if (other is Atom otherValue)
+                return Equals(otherValue);
+            return false;
+        }
         public bool Equals(Atom? other)
         {
             if (other is null)
@@ -91,6 +102,19 @@ namespace HaloScriptPreprocessor.AST
         public override Atom Clone(Node? parent = null)
         {
             return Value.Match(parser => new Atom(parser, parent), @string => new Atom(@string, parent));
+        }
+
+        public override void Rewrite(Dictionary<Value, Value> mapping)
+        {
+            // nothing to do
+        }
+
+        public override int GetHashCode()
+        {
+            int code = 80091;
+            foreach (char @char in ToSpan())
+                code = code * 1664525 * @char + 1013904223;
+            return code;
         }
     }
 }

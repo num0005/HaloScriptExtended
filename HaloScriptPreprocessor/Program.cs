@@ -18,7 +18,9 @@ namespace HaloScriptPreprocessor
             Emitter.HaloScriptEmitter emitter = new(@string, builder.Ast);
             Interpreter.Interpreter interpreter = new(builder.Ast);
             Passes.ConstantGlobalPass constantGlobalPass = new(builder.Ast, interpreter);
+            Passes.LoopUnrolling loopUnrolling = new(builder.Ast, interpreter);
             constantGlobalPass.Run();
+            loopUnrolling.Run();
             emitter.Emit();
             Console.WriteLine(@string.ToString());
         }

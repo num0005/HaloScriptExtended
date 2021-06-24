@@ -50,10 +50,22 @@ namespace HaloScriptPreprocessor.AST
 #pragma warning restore CS8604 // Possible null reference argument.
             LinkedList<Value> clonedArguments = new();
             foreach (Value arg in Arguments)
-                clonedArguments.Append(arg.Clone(clonedCode));
+                clonedArguments.AddLast(arg.Clone(clonedCode));
             clonedCode.Arguments = clonedArguments;
             Function.Switch(atom => clonedCode.Function = atom.Clone(clonedCode), script => clonedCode.Function = script);
             return clonedCode;
+        }
+
+        public override void Rewrite(Dictionary<Value, Value> mapping)
+        {
+            LinkedListNode<Value>? arg = Arguments.First;
+            while (arg is not null)
+            {
+                if (mapping.ContainsKey(arg.Value))
+                    arg.Value = mapping[arg.Value].Clone(this); // clone so parent is set correctly
+                arg.Value.Rewrite(mapping);
+                arg = arg.Next;
+            }
         }
 
         public override uint NodeCount

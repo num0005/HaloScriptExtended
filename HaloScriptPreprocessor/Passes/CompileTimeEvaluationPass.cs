@@ -30,11 +30,20 @@ namespace HaloScriptPreprocessor.Passes
 
         private Code? SimplifyCode(Code code)
         {
-            if (code.FunctionSpan.SequenceEqual("begin") && code.Arguments.Count == 1
+            ReadOnlySpan<char> func = code.FunctionSpan;
+            if (func.SequenceEqual("begin") && code.Arguments.Count == 1
                     && code.Arguments.First().Content.Value is Code beginArg)
                 return beginArg.Clone(code.ParentNode);
+            if (func.SequenceEqual("if") && code.Arguments.Count <= 3 && code.Arguments.Count >= 2)
+            {
+                Interpreter.Value? predicate = _interpreter.InterpretValue(code.Arguments.First());
+                if (predicate is null)
+                    return code;
+               // if (predicate.GetBoolean() is true)
 
-            return null;
+
+            }
+            return code;
         }
 
         protected override void OnVisitCode(Code code)
@@ -42,7 +51,7 @@ namespace HaloScriptPreprocessor.Passes
 
         }
 
-        protected override bool OnVisitCodeArgument(LinkedListNode<Value> argument)
+        protected override bool OnVisitCodeArgument(LinkedListNode<Value> argument, AST.Node parent)
         {
             return false;
         }

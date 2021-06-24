@@ -33,6 +33,12 @@ namespace HaloScriptPreprocessor.AST
         /// <param name="parent">New parent</param>
         /// <returns>New clone</returns>
         public abstract Node Clone(Node? parent = null);
+
+        /// <summary>
+        /// Rewrite terms in child nodes
+        /// </summary>
+        /// <param name="mapping">A mapping from the old term to the new term</param>
+        public abstract void Rewrite(Dictionary<Value, Value> mapping);
     }
 
     public abstract class NodeNamed : Node

@@ -17,7 +17,7 @@ namespace HaloScriptPreprocessor.Passes
         {
         }
 
-        protected override bool OnVisitCodeArgument(LinkedListNode<Value> argument)
+        protected override bool OnVisitCodeArgument(LinkedListNode<Value> argument, AST.Node parent)
         {
             return false;
         }

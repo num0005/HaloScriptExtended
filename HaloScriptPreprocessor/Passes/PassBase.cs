@@ -13,7 +13,7 @@ namespace HaloScriptPreprocessor.Passes
             _ast = ast;
         }
         /// <summary>
-        /// visit a global, modify or remove it
+        ///  Called upon visiting a global before visiting the child nodes
         /// </summary>
         /// <param name="global"></param>
         /// <returns>Whatever the global should be removed</returns>
@@ -31,6 +31,10 @@ namespace HaloScriptPreprocessor.Passes
                 VisitValue(global.Value);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
         protected abstract void OnVisitValue(AST.Value value);
 
         public void VisitValue(AST.Value value)
@@ -38,16 +42,19 @@ namespace HaloScriptPreprocessor.Passes
             if (RecordEnterNode(value)) // we visited this node already
                 return;
             OnVisitValue(value);
-            value.Content.Switch(_ => { }, code => VisitCode(code), global => VisitGlobal(global, global.Name.ToString()), script => VisitScript(script, script.Name.ToString()));
+            if (VisitReferences)
+                value.Content.Switch(_ => { }, code => VisitCode(code), global => VisitGlobal(global, global.Name.ToString()), script => VisitScript(script, script.Name.ToString()));
+            else if (value.Content.Value is AST.Code code)
+                VisitCode(code);
         }
 
 
-        private void VisitArgsInteral(LinkedList<AST.Value> arguments)
+        private void VisitArgsInteral(LinkedList<AST.Value> arguments, AST.Node parent)
         {
             LinkedListNode<AST.Value>? arg = arguments.First;
             while (arg is not null)
             {
-                bool remove = VisitCodeArgumentInternal(arg);
+                bool remove = VisitCodeArgumentInternal(arg, parent);
                 if (remove)
                 {
                     var nextArg = arg.Next;
@@ -67,13 +74,13 @@ namespace HaloScriptPreprocessor.Passes
                 return;
             OnVisitCode(code);
             code.Function.Switch(_ => { }, script => VisitScript(script));
-            VisitArgsInteral(code.Arguments);
+            VisitArgsInteral(code.Arguments, code);
         }
 
-        protected abstract bool OnVisitCodeArgument(LinkedListNode<AST.Value> argument);
-        private bool VisitCodeArgumentInternal(LinkedListNode<AST.Value> argument)
+        protected abstract bool OnVisitCodeArgument(LinkedListNode<AST.Value> argument, AST.Node parent);
+        private bool VisitCodeArgumentInternal(LinkedListNode<AST.Value> argument, AST.Node parent)
         {
-            bool remove = OnVisitCodeArgument(argument);
+            bool remove = OnVisitCodeArgument(argument, parent);
             if (!remove)
                 VisitValue(argument.Value);
             return remove;
@@ -89,7 +96,7 @@ namespace HaloScriptPreprocessor.Passes
             if (OnVisitScript(script))
                 _removeList.Add(name);
             else
-                VisitArgsInteral(script.Codes);
+                VisitArgsInteral(script.Codes, script);
         }
 
         /// <summary>
@@ -108,7 +115,7 @@ namespace HaloScriptPreprocessor.Passes
             foreach (string toRemove in _removeList)
                 _ast.Remove(toRemove);
         }
-        private bool RecordEnterNode(AST.Node node)
+        private bool RecordEnterNode<Node>(Node node) where Node : AST.Node
         {
             if (_visted.Contains(node))
                 return true;
@@ -118,5 +125,7 @@ namespace HaloScriptPreprocessor.Passes
         private readonly List<string> _removeList = new();
         private readonly HashSet<AST.Node> _visted = new();
         private readonly AST.AST _ast;
+
+        public bool VisitReferences = true;
     }
 }
