@@ -205,7 +205,7 @@ namespace HaloScriptPreprocessor.Parser
                     {
                         Atom returnTypeAtom = reader.NextExpectAtom("Expecting an atom for script return type!");
                         Atom name = reader.NextExpectAtom("Expecting an atom for script name!");
-                        List<(AST.ValueType type, string name)>? arguments = null;
+                        List<(AST.ValueType type, AST.Atom name)>? arguments = null;
                         if (type == ScriptType.Macro)
                         {
                             Expression argumentsExpression = reader.NextExpectExpression("Expecting an arguments expression");
@@ -217,7 +217,7 @@ namespace HaloScriptPreprocessor.Parser
                             {
                                 Atom valueAtom = next.ExpectAtom("");
                                 Atom nameAtom = argumentsReader.NextExpectAtom("");
-                                (AST.ValueType type, string name) arg = new(valueAtom.Value.ParseValueType(), nameAtom.Value);
+                                (AST.ValueType type, AST.Atom name) arg = new(valueAtom.Value.ParseValueType(), buildAtom(nameAtom));
                                 arguments.Add(arg);
                             }
                         }

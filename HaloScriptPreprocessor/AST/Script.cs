@@ -9,7 +9,7 @@ namespace HaloScriptPreprocessor.AST
         {
             _name = atom.Clone(this);
         }
-        public Script(Parser.Expression source, ScriptType type, Atom name, LinkedList<Value> code, ValueType? valueType = null, List<(ValueType type, string name)>? arguments = null) : base(source, name)
+        public Script(Parser.Expression source, ScriptType type, Atom name, LinkedList<Value> code, ValueType? valueType = null, List<(ValueType type, Atom name)>? arguments = null) : base(source, name)
         {
             Type = type;
             Codes = code;
@@ -21,7 +21,7 @@ namespace HaloScriptPreprocessor.AST
         public ValueType? ReturnValueType;
         public Atom ScriptName => Name;
         public LinkedList<Value> Codes = new();
-        public List<(ValueType type, string name)>? Arguments;
+        public List<(ValueType type, Atom name)>? Arguments;
 
         public override uint NodeCount
         {

@@ -19,8 +19,10 @@ namespace HaloScriptPreprocessor
             Interpreter.Interpreter interpreter = new(builder.Ast);
             Passes.ConstantGlobalPass constantGlobalPass = new(builder.Ast, interpreter);
             Passes.LoopUnrolling loopUnrolling = new(builder.Ast, interpreter);
+            Passes.MacroExpansionPass macroExpansion = new(builder.Ast);
             constantGlobalPass.Run();
             loopUnrolling.Run();
+            macroExpansion.Run();
             emitter.Emit();
             Console.WriteLine(@string.ToString());
         }
