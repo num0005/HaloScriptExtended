@@ -123,17 +123,19 @@ namespace HaloScriptPreprocessor.Emitter
         void enterExpression()
         {
             _expressionDepth++;
-            if (_expressionDepth != 0)
+            if (!_isFirstExpression)
                 emitNewline();
             _textWriter.Write('(');
             _needSpace = false;
+            _isFirstExpression = false;
         }
 
         void exitExpression()
         {
             _expressionDepth--;
+            if (_expressionDepth == -1)
+                emitNewline();
             _textWriter.Write(')');
-            emitNewline();
         }
 
         void emitNewline()
@@ -156,6 +158,10 @@ namespace HaloScriptPreprocessor.Emitter
         /// whatever the next atom should have a space before it
         /// </summary>
         private bool _needSpace = false;
+        /// <summary>
+        /// Is this the first expression?
+        /// </summary>
+        private bool _isFirstExpression = true;
 
         private readonly TextWriter _textWriter;
         private readonly AST.AST _ast;

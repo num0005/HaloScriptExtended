@@ -12,9 +12,11 @@ namespace HaloScriptPreprocessor
             Passes.ConstantGlobalPass constantGlobalPass = new(builder.Ast, interpreter);
             Passes.LoopUnrolling loopUnrolling = new(builder.Ast, interpreter);
             Passes.MacroExpansionPass macroExpansion = new(builder.Ast);
+            Passes.CompileTimeEvaluationPass compileTimeEvaluationPass = new(builder.Ast, interpreter);
             constantGlobalPass.Run();
             loopUnrolling.Run();
             macroExpansion.Run();
+            compileTimeEvaluationPass.Run();
             using (StreamWriter writer = new StreamWriter(Path.Combine(outputDirectory, file)))
             {
                 Emitter.HaloScriptEmitter emitter = new(@writer, builder.Ast);
@@ -24,7 +26,7 @@ namespace HaloScriptPreprocessor
         static void Main(string[] args)
         {
             if (args.Length != 1)
-                Console.WriteLine(System.AppDomain.CurrentDomain.FriendlyName + "<scenario directory>");
+                Console.WriteLine(AppDomain.CurrentDomain.FriendlyName + "<scenario directory>");
             string scenarioDirectory = args[0];
 
             string sourceDirectory = Path.Combine(scenarioDirectory, "hscx_scripts");

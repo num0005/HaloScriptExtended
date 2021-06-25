@@ -28,6 +28,7 @@ namespace HaloScriptPreprocessor.Passes
 
         private Code? SimplifyCode(Code code)
         {
+            return null;
             ReadOnlySpan<char> func = code.FunctionSpan;
             if (func.SequenceEqual("begin") && code.Arguments.Count == 1
                     && code.Arguments.First().Content.Value is Code beginArg)
