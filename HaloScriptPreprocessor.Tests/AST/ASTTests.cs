@@ -24,7 +24,7 @@ namespace HaloScriptPreprocessor.Tests.AST
         private readonly Script _script; 
 
         [Fact]
-        public void IsUserDefinedName_StateUnderTest_ExpectedBehavior()
+        public void IsUserDefinedName_Test()
         {
             Atom nameAtom = new Atom("fake_startup");
             Atom otherNameAtom = new Atom("fake_nonexist");
@@ -38,7 +38,7 @@ namespace HaloScriptPreprocessor.Tests.AST
         }
 
         [Fact]
-        public void Add_StateUnderTest_ExpectedBehavior()
+        public void Add_Test()
         {
             Atom scriptName = new Atom("another_fake");
             Script script = new(_fakeExpression, ScriptType.Dormant, scriptName, new(), null, null);
@@ -48,7 +48,7 @@ namespace HaloScriptPreprocessor.Tests.AST
         }
 
         [Fact]
-        public void Get_StateUnderTest_ExpectedBehavior()
+        public void Get_Test()
         {
             Assert.NotNull(_ast.Get("fake_startup"));
             Assert.Null(_ast.Get("fake_nonexist"));
@@ -57,7 +57,7 @@ namespace HaloScriptPreprocessor.Tests.AST
         }
 
         [Fact]
-        public void Remove_StateUnderTest_ExpectedBehavior()
+        public void Remove_Test()
         {
             Assert.True(_ast.Remove("fake_startup"));
             Assert.Null(_ast.Get("fake_startup"));

@@ -33,7 +33,7 @@ namespace HaloScriptPreprocessor.Tests.AST
         private readonly LinkedList<Value> _args = new();
         private readonly Code _code;
         [Fact]
-        public void SetContents_StateUnderTest_ExpectedBehavior()
+        public void SetContents_Test()
         {
             Code other = new Code(_fakeExpression2, new Atom("fake_hsc"), new());
 
@@ -51,7 +51,7 @@ namespace HaloScriptPreprocessor.Tests.AST
         }
 
         [Fact]
-        public void Clone_StateUnderTest_ExpectedBehavior()
+        public void Clone_Test()
         {
             Node? parent = null;
 
@@ -93,7 +93,7 @@ namespace HaloScriptPreprocessor.Tests.AST
         }
 
         [Fact]
-        public void Rewrite_StateUnderTest_ExpectedBehavior()
+        public void Rewrite_Test()
         {
             Assert.ThrowsAny<Exception>(() => _code.Rewrite(null));
 
@@ -106,6 +106,18 @@ namespace HaloScriptPreprocessor.Tests.AST
             Value[] args = _code.Arguments.ToArray();
             Assert.Equal(0, args[3].Content.Index);
             Assert.Equal("1", args[3].Content.AsT0.ToString());
+        }
+
+        [Fact]
+        public void NodeCount_Test()
+        {
+            Assert.Equal(5u, _code.NodeCount);
+        }
+
+        [Fact]
+        public void FunctionSpan_Test()
+        {
+            Assert.True(_code.FunctionSpan.SequenceEqual("*"));
         }
     }
 }

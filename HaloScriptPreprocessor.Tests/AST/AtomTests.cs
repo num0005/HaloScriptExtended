@@ -23,14 +23,14 @@ namespace HaloScriptPreprocessor.Tests.AST
         private readonly Atom _atom;
         private readonly Atom _parentAtom;
         [Fact]
-        public void ToSpan_StateUnderTest_ExpectedBehavior()
+        public void ToSpan_Test()
         {
             Assert.True(_atom.ToSpan().SequenceEqual("child"));
             Assert.True(_atomFromParser.ToSpan().SequenceEqual("fake_"));
         }
 
         [Fact]
-        public void ToString_StateUnderTest_ExpectedBehavior()
+        public void ToString_Test()
         {
             Assert.Equal("child", _atom.ToString());
             Assert.Equal("parent", _parentAtom.ToString());
@@ -38,7 +38,7 @@ namespace HaloScriptPreprocessor.Tests.AST
         }
 
         [Fact]
-        public void Equals_StateUnderTest_ExpectedBehavior()
+        public void Equals_Test()
         {
             Assert.True(_atom.Equals(_atom));
             Assert.True(_atom.Equals(
@@ -54,7 +54,7 @@ namespace HaloScriptPreprocessor.Tests.AST
         }
 
         [Fact]
-        public void Clone_StateUnderTest_ExpectedBehavior()
+        public void Clone_Test()
         {
             Node? parent = null;
 
@@ -73,7 +73,7 @@ namespace HaloScriptPreprocessor.Tests.AST
         }
 
         [Fact]
-        public void Rewrite_StateUnderTest_ExpectedBehavior()
+        public void Rewrite_Test()
         {
             // Act
             _atom.Rewrite(
@@ -81,7 +81,7 @@ namespace HaloScriptPreprocessor.Tests.AST
         }
 
         [Fact]
-        public void GetHashCode_StateUnderTest_ExpectedBehavior()
+        public void GetHashCode_Test()
         {
 
             // Act
