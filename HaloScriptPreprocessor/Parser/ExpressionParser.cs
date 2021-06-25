@@ -22,28 +22,40 @@ namespace HaloScriptPreprocessor.Parser
             while ((token = nextToken()) is not null)
             {
                 var type = token.Value.Type;
-                if (type == TokenType.LeftBracket)
+                switch (token.Value.Type)
                 {
-                    Expression expression = new(CreatePartialSource(token.Value.Source.AsT1));
-                    if (stackLength() == 0)
-                        _parsedExpressions.AddExpression(expression);
-                    pushExpression(expression);
-                }
-                else if (type == TokenType.RightBracket)
-                {
-                    if (stackLength() == 0)
-                        throw new UnexpectedCharactrerError(token.Value.Source.AsT1, "Unexpected \"(\", no preceeding \"(\" to close");
+                    case TokenType.LeftBracket:
+                        {
+                            Expression expression = new(CreatePartialSource(token.Value.Source.AsT1));
+                            if (stackLength() == 0)
+                                _parsedExpressions.AddExpression(expression);
+                            pushExpression(expression);
+                            break;
+                        }
+                    case TokenType.RightBracket:
+                        {
+                            if (stackLength() == 0)
+                                throw new UnexpectedCharactrerError(token.Value.Source.AsT1, "Unexpected \"(\", no preceeding \"(\" to close");
 #pragma warning disable CS8602
-                    _currentExpression.Source.setEnd(token.Value.Source.AsT1);
+                            _currentExpression.Source.setEnd(token.Value.Source.AsT1);
 #pragma warning restore CS8602
-                    popExpression();
-                }
-                if (type == TokenType.Atomic || type == TokenType.AtomicQuote)
-                {
-                    ExpressionSource source = token.Value.Source.AsT0;
-                    if (stackLength() == 0)
-                        throw new UnexpectedAtom(source, $"Atomic expression \"{source.Contents}\" is not allowed as a top level expression");
-                    pushAtom(new Atom(source, type == TokenType.AtomicQuote));
+                            popExpression();
+                            break;
+                        }
+                    case TokenType.Atomic:
+                    case TokenType.AtomicQuote:
+                        {
+                            ExpressionSource source = token.Value.Source.AsT0;
+                            if (stackLength() == 0)
+                            {
+                                if (type == TokenType.AtomicQuote) // allow quoted top level atoms (Python style multi-line comments)
+                                    break;
+                                else
+                                    throw new UnexpectedAtom(source, $"Atomic expression \"{source.Contents}\" is not allowed as a top level expression");
+                            }
+                            pushAtom(new Atom(source, type == TokenType.AtomicQuote));
+                            break;
+                        }
                 }
             }
 
@@ -183,8 +195,8 @@ namespace HaloScriptPreprocessor.Parser
                     case '"':
                         if (_inComment)
                             continue;
-                        // check if the previous character allows a quote to start
-                        if (!inQuoteToken() && _currentOffset != 0)
+                        // check if the previous character allows a quote to start (or this is the start of a line)
+                        if (!inQuoteToken() && _currentOffset != 0 && _currentColunm != 1)
                         {
                             char previous = data[_currentOffset - 1];
                             switch (previous)
