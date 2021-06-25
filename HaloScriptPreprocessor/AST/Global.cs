@@ -20,7 +20,7 @@ namespace HaloScriptPreprocessor.AST
 
         public override uint NodeCount => 1 + Value.NodeCount;
 
-        public override Node Clone(Node? parent = null)
+        public override Global Clone(Node? parent = null)
         {
 #pragma warning disable CS8604 // Possible null reference argument.
             Global clonedGlobal = new(Source);
@@ -35,6 +35,8 @@ namespace HaloScriptPreprocessor.AST
 
         public override void Rewrite(Dictionary<Value, Value> mapping)
         {
+            if (mapping.ContainsKey(Value))
+                Value = mapping[Value].Clone(Value.ParentNode);
             Value.Rewrite(mapping);
         }
     }

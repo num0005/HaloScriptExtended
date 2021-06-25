@@ -16,6 +16,7 @@ namespace HaloScriptPreprocessor.Tests.AST
 
             _global = new(_fakeExpression, new Atom("fake_global"), "string".ParseValueType(), new Value(null, new Atom("a_test_string")));
             _global.IsConst = true;
+            _global.Value.ParentNode = _global;
         }
 
         private readonly Parser.SourceFile _fakeSourceFile = new("fake_contents", "fake_name.hsc", null);
@@ -56,6 +57,7 @@ namespace HaloScriptPreprocessor.Tests.AST
             _global.Rewrite(mapping);
 
             Assert.Equal(to, _global.Value);
+            Assert.Equal(_global, _global.Value.ParentNode);
         }
     }
 }
