@@ -1,6 +1,10 @@
 ﻿using System;
 using System.IO;
 
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("HaloScriptPreprocessor.Tests")]
+
 namespace HaloScriptPreprocessor
 {
     class Program
@@ -26,7 +30,10 @@ namespace HaloScriptPreprocessor
         static void Main(string[] args)
         {
             if (args.Length != 1)
+            {
                 Console.WriteLine(AppDomain.CurrentDomain.FriendlyName + "<scenario directory>");
+                return;
+            }
             string scenarioDirectory = args[0];
 
             string sourceDirectory = Path.Combine(scenarioDirectory, "hscx_scripts");

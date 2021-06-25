@@ -21,9 +21,9 @@ namespace HaloScriptPreprocessor.AST
             return node;
         }
 
-        public void Remove(string name)
+        public bool Remove(string name)
         {
-            _userNameMapping.Remove(name);
+            return _userNameMapping.Remove(name);
         }
 
         public IReadOnlyDictionary<string, NodeNamed> UserNameMapping => _userNameMapping;
