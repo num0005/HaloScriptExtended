@@ -59,5 +59,11 @@ namespace HaloScriptPreprocessor.Tests.AST
             Assert.Equal(to, _global.Value);
             Assert.Equal(_global, _global.Value.ParentNode);
         }
+
+        [Fact]
+        public void NodeCount_Test()
+        {
+            Assert.Equal(2u, _global.NodeCount);
+        }
     }
 }

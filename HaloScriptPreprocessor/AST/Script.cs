@@ -38,10 +38,11 @@ namespace HaloScriptPreprocessor.AST
         {
             Script clonedScript = new(Source, ScriptName);
             clonedScript.ReturnValueType = ReturnValueType;
+            clonedScript.Type = Type;
             if (Arguments is not null)
                 clonedScript.Arguments = Arguments.ToList();
             foreach (Value code in Codes)
-                clonedScript.Codes.Append(code.Clone(clonedScript));
+                clonedScript.Codes.AddLast(code.Clone(clonedScript));
             return clonedScript;
         }
 
