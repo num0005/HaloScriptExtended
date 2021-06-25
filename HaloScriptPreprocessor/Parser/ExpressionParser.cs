@@ -129,6 +129,7 @@ namespace HaloScriptPreprocessor.Parser
 
             // helpers
 
+            Func<bool> inComment = () => _inStandardComment || _inMultilineComment;
             Func<bool> inToken = () => tokenStart is not null;
             Func<bool> inQuoteToken = () => quoteStartLocation is not null;
             Func<SourceLocation, SourceLocation, (TokenType, OneOf<ExpressionSource, SourceLocation>)> endToken = (start, end) =>
@@ -180,7 +181,7 @@ namespace HaloScriptPreprocessor.Parser
                         _currentOffset += 1;
                         _currentLine += 1;
                         _currentColunm = 0;
-                        _inComment = false;
+                        _inStandardComment = false;
                         if (inToken())
                             return endToken(tokenStart.Value, newlineStart);
                         continue;
@@ -188,12 +189,12 @@ namespace HaloScriptPreprocessor.Parser
                         newlineStart = getLocation();
                         _currentLine += 1;
                         _currentColunm = 0;
-                        _inComment = false;
+                        _inStandardComment = false;
                         if (inToken())
                             return endToken(tokenStart.Value, newlineStart);
                         continue;
                     case '"':
-                        if (_inComment)
+                        if (inComment())
                             continue;
                         // check if the previous character allows a quote to start (or this is the start of a line)
                         if (!inQuoteToken() && _currentOffset != 0 && _currentColunm != 1)
@@ -225,29 +226,44 @@ namespace HaloScriptPreprocessor.Parser
                             continue;
                         }
                     case ';':
-                        if (!inQuoteToken())
+                        if (!inQuoteToken() && !inComment())
                         {
-                            _inComment = true;
+                            _inStandardComment = true;
                             if (inToken())
                                 return endToken(tokenStart.Value, getLocation());
 
                         }
                         continue;
+                    case '*':
+                        if (_inMultilineComment && _currentOffset + 1 < data.Length && data[_currentOffset + 1] == ';')
+                        {
+                            _currentOffset += 1; // skip the next character so we don't start another comment
+                            _inMultilineComment = false;
+                            continue;
+                        } else if (_inStandardComment && data[_currentOffset - 1] == ';')
+                        {
+                            _inMultilineComment = true;
+                            _inStandardComment = false;
+                            continue;
+                        }
+                        if (!inComment() && !inToken() && !inQuoteToken())
+                            tokenStart = getLocation();
+                        continue;
                     case ' ':
                     case '\t':
-                        if (!_inComment && inToken())
+                        if (!inComment() && inToken())
                             return (TokenType.Atomic, CreateSource(tokenStart.Value, getLocation()));
                         continue;
                     case '(':
-                        if (_inComment || inQuoteToken())
+                        if (inComment() || inQuoteToken())
                             continue;
                         return handleBracket(true);
                     case ')':
-                        if (_inComment || inQuoteToken())
+                        if (inComment() || inQuoteToken())
                             continue;
                         return handleBracket(false);
                     default:
-                        if (!_inComment && !inToken() && !inQuoteToken())
+                        if (!inComment() && !inToken() && !inQuoteToken())
                             tokenStart = getLocation();
                         continue;
                 }
@@ -307,10 +323,11 @@ namespace HaloScriptPreprocessor.Parser
         // tokenizer stuff
 
         int _currentOffset = -1;
-        int _currentLine = 0;
-        int _currentColunm = -1;
+        int _currentLine = 1;
+        int _currentColunm = 0;
+        bool _inStandardComment = false; // are we currently inside a standard comment?
+        bool _inMultilineComment = false; // are we currently inside a multiline comment?
 
-        bool _inComment = false; // are we currently inside a comment?
         #endregion
     }
 }
