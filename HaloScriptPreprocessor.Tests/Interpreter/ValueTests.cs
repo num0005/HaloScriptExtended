@@ -13,12 +13,12 @@ namespace HaloScriptPreprocessor.Tests.Interpreter
 
         private readonly Value _longValue = new(200000);
         private readonly Value _shortValue = new(2);
-        private readonly Value _realValue = new(5.0f);
+        private readonly Value _realValue = new(5.1f);
         private readonly Value _booleanValue = new(true);
 
         private readonly Value _longAtomValue = new(new HaloScriptPreprocessor.AST.Atom("200000"));
         private readonly Value _shortAtomValue = new(new HaloScriptPreprocessor.AST.Atom("2"));
-        private readonly Value _realAtomValue = new(new HaloScriptPreprocessor.AST.Atom("5.0"));
+        private readonly Value _realAtomValue = new(new HaloScriptPreprocessor.AST.Atom("5.1"));
         private readonly Value _booleanAtomValue = new(new HaloScriptPreprocessor.AST.Atom("true"));
 
         private readonly Value _stringAtomValue = new(new HaloScriptPreprocessor.AST.Atom("Hello world!"));
@@ -126,12 +126,12 @@ namespace HaloScriptPreprocessor.Tests.Interpreter
         {
             Assert.Equal("200000", _longValue.GetString());
             Assert.Equal("2", _shortValue.GetString());
-            Assert.Equal("5.0", _realValue.GetString());
+            Assert.Equal("5.1", _realValue.GetString());
             Assert.Equal("true", _booleanValue.GetString());
 
             Assert.Equal("200000", _longAtomValue.GetString());
             Assert.Equal("2", _shortAtomValue.GetString());
-            Assert.Equal("5.0", _realAtomValue.GetString());
+            Assert.Equal("5.1", _realAtomValue.GetString());
             Assert.Equal("true", _booleanAtomValue.GetString());
 
             Assert.Equal("Hello world!", _stringAtomValue.GetString());

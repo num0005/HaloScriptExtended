@@ -67,8 +67,11 @@ namespace HaloScriptPreprocessor.Interpreter
                 {
                     short result;
                     float real;
+                    long @long;
                     if (short.TryParse(atom.ToSpan(), out result))
                         return result;
+                    else if (long.TryParse(atom.ToSpan(), out @long))
+                        return null;
                     else if (float.TryParse(atom.ToSpan(), out real))
                         return (short)real;
                     else
