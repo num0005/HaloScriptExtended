@@ -40,31 +40,37 @@ namespace HaloScriptPreprocessor.Interpreter
         public long? GetLong()
         {
             return Contents.Match<long?>(
-                null,
+                _ => null,
                 atom =>
                 {
                     long result;
+                    float real;
                     if (long.TryParse(atom.ToSpan(), out result))
                         return result;
+                    else if (float.TryParse(atom.ToSpan(), out real))
+                        return (long)real;
                     else
                         return null;
                 },
                 @long => @long,
                 @short => @short,
                 real => (long)real,
-                null
+                _ => null
                 );
         }
 
         public short? GetShort()
         {
             return Contents.Match<short?>(
-                null,
+                _ => null,
                 atom =>
                 {
                     short result;
+                    float real;
                     if (short.TryParse(atom.ToSpan(), out result))
                         return result;
+                    else if (float.TryParse(atom.ToSpan(), out real))
+                        return (short)real;
                     else
                         return null;
                 },
@@ -76,14 +82,14 @@ namespace HaloScriptPreprocessor.Interpreter
                 },
                 @short => @short,
                 real => (short)real,
-                null
+                _ => null
                 );
         }
 
         public float? GetFloat()
         {
             return Contents.Match<float?>(
-                null,
+                _ => null,
                 atom =>
                 {
                     float result;
@@ -95,14 +101,14 @@ namespace HaloScriptPreprocessor.Interpreter
                 @long => @long,
                 @short => @short,
                 real => real,
-                null
+                _ => null
                 );
         }
 
         public bool? GetBoolean()
         {
             return Contents.Match<bool?>(
-                null,
+                _ => null,
                 atom =>
                 {
                     ReadOnlySpan<char> span = atom.ToSpan();
@@ -174,10 +180,10 @@ namespace HaloScriptPreprocessor.Interpreter
             );
         }
 
-        public string GetString()
+        public string? GetString()
         {
             return Contents.Match(
-                null,
+                _ => null,
                 atom => atom.ToString(),
                 @long => @long.ToString(),
                 @short => @short.ToString(),
