@@ -2,11 +2,11 @@ name: .NET 5
 
 on:
   push:
-    branches: [ master ]
+    branches: [ prime ]
     paths-ignore:
       - '*.md'
   pull_request:
-    branches: [ master ]
+    branches: [ prime ]
     paths-ignore:
       - '*.md'
 
