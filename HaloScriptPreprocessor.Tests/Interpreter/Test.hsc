@@ -41,4 +41,24 @@
 	(!= true true) ; 31 - false
 	(!= unk true) ; 32 - undefined
 	(or false false) ;  33 - false
+	; gtr
+	(> 3 4) ; 34 - false
+	(> 3 3) ; 35 - false
+	(> 4 3) ; 36 - true
+	(> 4 min) ; 37 - undefined
+	; lss
+	(< 3 4) ; 38 - true
+	(< 3 3) ; 39 - false
+	(< 4 3) ; 40 - false
+	(< 4 min) ; 41 - undefined
+	; geq
+	(>= 3 4) ; 42 - false
+	(>= 3 3) ; 43 - true
+	(>= 4 3) ; 44 - true
+	(>= 4 min) ; 45 - undefined
+	; leq
+	(<= 3 4) ; 46 - true
+	(<= 3 3) ; 47 - true
+	(<= 4 3) ; 48 - false
+	(<= 4 min) ; 49 - undefined
 )
