@@ -85,6 +85,15 @@ namespace HaloScriptPreprocessor.Parser
             resolve();
         }
 
+        /// <summary>
+        /// Constructor for unit tests
+        /// </summary>
+        private ASTBuilder()
+        {
+            _directory = "";
+            _mainFile = "fake.hsc";
+        }
+
         private void resolve()
         {
             foreach (KeyValuePair<string, AST.NodeNamed> entry in _ast.UserNameMapping)
