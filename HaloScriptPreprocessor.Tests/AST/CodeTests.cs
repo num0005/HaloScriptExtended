@@ -4,16 +4,20 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
+using SourceFile = HaloScriptPreprocessor.Parser.SourceFile;
+using ExpressionSource = HaloScriptPreprocessor.Parser.ExpressionSource;
+using Expression = HaloScriptPreprocessor.Parser.Expression;
+
 namespace HaloScriptPreprocessor.Tests.AST
 {
     public class CodeTests
     {
         public CodeTests()
         {
-            _fakeExpressionSource = new Parser.ExpressionSource(_fakeSourceFile, new(0, 1, 1), new(5, 1, 6));
+            _fakeExpressionSource = new ExpressionSource(_fakeSourceFile, new(0, 1, 1), new(5, 1, 6));
             _fakeExpression = new(_fakeExpressionSource);
 
-            _fakeExpressionSource2 = new Parser.ExpressionSource(_fakeSourceFile, new(4, 1, 5), new(7, 1, 8));
+            _fakeExpressionSource2 = new ExpressionSource(_fakeSourceFile, new(4, 1, 5), new(7, 1, 8));
             _fakeExpression2 = new(_fakeExpressionSource2);
 
 
@@ -24,11 +28,11 @@ namespace HaloScriptPreprocessor.Tests.AST
             _code = new(_fakeExpression, new Atom("*"), _args);
         }
 
-        private readonly Parser.SourceFile _fakeSourceFile = new("fake_contents", "fake_name.hsc", null);
-        private readonly Parser.ExpressionSource _fakeExpressionSource;
-        private readonly Parser.ExpressionSource _fakeExpressionSource2;
-        private readonly Parser.Expression _fakeExpression;
-        private readonly Parser.Expression _fakeExpression2;
+        private readonly SourceFile _fakeSourceFile = new("fake_contents", "fake_name.hsc", null);
+        private readonly ExpressionSource _fakeExpressionSource;
+        private readonly ExpressionSource _fakeExpressionSource2;
+        private readonly Expression _fakeExpression;
+        private readonly Expression _fakeExpression2;
 
         private readonly LinkedList<Value> _args = new();
         private readonly Code _code;

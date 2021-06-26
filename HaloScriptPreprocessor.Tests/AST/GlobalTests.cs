@@ -11,7 +11,7 @@ namespace HaloScriptPreprocessor.Tests.AST
 
         public GlobalTests()
         {
-            _fakeExpressionSource = new Parser.ExpressionSource(_fakeSourceFile, new(0, 1, 1), new(5, 1, 6));
+            _fakeExpressionSource = new HaloScriptPreprocessor.Parser.ExpressionSource(_fakeSourceFile, new(0, 1, 1), new(5, 1, 6));
             _fakeExpression = new(_fakeExpressionSource);
 
             _global = new(_fakeExpression, new Atom("fake_global"), "string".ParseValueType(), new Value(null, new Atom("a_test_string")));
@@ -19,9 +19,9 @@ namespace HaloScriptPreprocessor.Tests.AST
             _global.Value.ParentNode = _global;
         }
 
-        private readonly Parser.SourceFile _fakeSourceFile = new("fake_contents", "fake_name.hsc", null);
-        private readonly Parser.ExpressionSource _fakeExpressionSource;
-        private readonly Parser.Expression _fakeExpression;
+        private readonly HaloScriptPreprocessor.Parser.SourceFile _fakeSourceFile = new("fake_contents", "fake_name.hsc", null);
+        private readonly HaloScriptPreprocessor.Parser.ExpressionSource _fakeExpressionSource;
+        private readonly HaloScriptPreprocessor.Parser.Expression _fakeExpression;
 
         private readonly Global _global;
 

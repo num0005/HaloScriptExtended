@@ -1,6 +1,8 @@
 ﻿using HaloScriptPreprocessor.AST;
+using HaloScriptPreprocessor.Parser;
 using System;
 using Xunit;
+using Atom = HaloScriptPreprocessor.AST.Atom;
 
 namespace HaloScriptPreprocessor.Tests.AST
 {
@@ -8,7 +10,7 @@ namespace HaloScriptPreprocessor.Tests.AST
     {
         public ASTTests()
         {
-            _fakeExpressionSource = new Parser.ExpressionSource(_fakeSourceFile, new(0, 1, 1), new(5, 1, 6));
+            _fakeExpressionSource = new ExpressionSource(_fakeSourceFile, new(0, 1, 1), new(5, 1, 6));
             _fakeExpression = new(_fakeExpressionSource);
             Atom scriptName = new Atom("fake_startup");
             _script = new(_fakeExpression, ScriptType.Startup, scriptName, new(), null, null);
@@ -18,9 +20,9 @@ namespace HaloScriptPreprocessor.Tests.AST
         }
 
         private readonly HaloScriptPreprocessor.AST.AST _ast = new();
-        private readonly Parser.SourceFile _fakeSourceFile = new("fake_contents", "fake_name.hsc", null);
-        private readonly Parser.ExpressionSource _fakeExpressionSource;
-        private readonly Parser.Expression _fakeExpression;
+        private readonly SourceFile _fakeSourceFile = new("fake_contents", "fake_name.hsc", null);
+        private readonly ExpressionSource _fakeExpressionSource;
+        private readonly Expression _fakeExpression;
         private readonly Script _script; 
 
         [Fact]

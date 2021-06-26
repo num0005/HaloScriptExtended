@@ -7,15 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Parser\test.hsc" />
     <None Remove="Test.hsc" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Interpreter\Test.hsc" />
+    <EmbeddedResource Include="Interpreter\test.hsc" />
+    <EmbeddedResource Include="Parser\test.hsc" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+    <PackageReference Include="PrivateObjectExtensions" Version="1.4.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -29,6 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HaloScriptPreprocessor\HaloScriptPreprocessor.csproj" />
+    <ProjectReference Include="..\PrivateObject\PrivateObjectType.csproj" />
   </ItemGroup>
 
 </Project>

@@ -108,7 +108,7 @@ namespace HaloScriptPreprocessor.Parser
                 return _expressionsStack.Count + 1;
         }
 
-        private enum TokenType
+        internal enum TokenType
         {
             Atomic,
             AtomicQuote,
@@ -153,7 +153,7 @@ namespace HaloScriptPreprocessor.Parser
                     if (left)
                         return (TokenType.LeftBracket, currentLocation);
                     else
-                        return (TokenType.RightBracket, new SourceLocation(_currentOffset + 1, _currentLine, _currentColunm + 1));
+                        return (TokenType.RightBracket, currentLocation);
                 }
             };
 
