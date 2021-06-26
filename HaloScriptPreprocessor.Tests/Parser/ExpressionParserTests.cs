@@ -1,12 +1,9 @@
 ﻿using HaloScriptPreprocessor.Parser;
-using System;
-using Xunit;
-using System.IO;
-using System.Reflection;
+using Microsoft.Toolkit.HighPerformance;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OneOf;
+using Xunit;
 using static HaloScriptPreprocessor.Parser.ExpressionParser;
-using Microsoft.Toolkit.HighPerformance;
 
 namespace HaloScriptPreprocessor.Tests.Parser
 {
@@ -14,14 +11,9 @@ namespace HaloScriptPreprocessor.Tests.Parser
     {
         public ExpressionParserTests()
         {
-            var assembly = Assembly.GetExecutingAssembly();
             var resourceName = "HaloScriptPreprocessor.Tests.Parser.test.hsc";
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                _sourceFile = new(reader.ReadToEnd(), resourceName, null);
-            }
-
+            string sourceContents = ResourceHelper.Read(resourceName);
+            _sourceFile = new(sourceContents, resourceName, null);
             _expressionParser = new(_parsed, _sourceFile);
             @private = new(_expressionParser);
         }
@@ -35,8 +27,6 @@ namespace HaloScriptPreprocessor.Tests.Parser
         {
             return @private.Invoke("nextToken") as (TokenType Type, OneOf<ExpressionSource, SourceLocation> Source)?;
         }
-
-
 
         [Fact]
         public void TokenizerTestComments()

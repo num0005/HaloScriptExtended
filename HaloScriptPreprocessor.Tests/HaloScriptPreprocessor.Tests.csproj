@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <None Remove="Parser\test.hsc" />
-    <None Remove="Test.hsc" />
+    <None Remove="test.hsc" />
   </ItemGroup>
 
   <ItemGroup>

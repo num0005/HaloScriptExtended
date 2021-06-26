@@ -1,10 +1,6 @@
 ﻿using HaloScriptPreprocessor.Interpreter;
-using System;
-using System.IO;
-using System.Reflection;
 using Xunit;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace HaloScriptPreprocessor.Tests.Interpreter
 {
@@ -12,14 +8,7 @@ namespace HaloScriptPreprocessor.Tests.Interpreter
     {
         public InterpreterTests()
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = "HaloScriptPreprocessor.Tests.Interpreter.test.hsc";
-            string testFile;
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                testFile = reader.ReadToEnd();
-            }
+            string testFile = ResourceHelper.Read("HaloScriptPreprocessor.Tests.Interpreter.test.hsc");
             HaloScriptPreprocessor.Parser.ASTBuilder builder = new(testFile);
             _interpreter = new(builder.Ast);
             _ast = builder.Ast;
