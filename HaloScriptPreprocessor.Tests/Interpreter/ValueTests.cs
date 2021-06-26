@@ -14,12 +14,12 @@ namespace HaloScriptPreprocessor.Tests.Interpreter
         private readonly Value _longValue = new(200000);
         private readonly Value _shortValue = new(2);
         private readonly Value _realValue = new(5.1f);
-        private readonly Value _booleanValue = new(true);
+        private readonly Value _booleanValue = new(false);
 
         private readonly Value _longAtomValue = new(new HaloScriptPreprocessor.AST.Atom("200000"));
         private readonly Value _shortAtomValue = new(new HaloScriptPreprocessor.AST.Atom("2"));
         private readonly Value _realAtomValue = new(new HaloScriptPreprocessor.AST.Atom("5.1"));
-        private readonly Value _booleanAtomValue = new(new HaloScriptPreprocessor.AST.Atom("true"));
+        private readonly Value _booleanAtomValue = new(new HaloScriptPreprocessor.AST.Atom("false"));
 
         private readonly Value _stringAtomValue = new(new HaloScriptPreprocessor.AST.Atom("Hello world!"));
         private readonly Value _voidValue = new();
@@ -80,12 +80,12 @@ namespace HaloScriptPreprocessor.Tests.Interpreter
             Assert.True(_longValue.GetBoolean());
             Assert.True(_shortValue.GetBoolean());
             Assert.True(_realValue.GetBoolean());
-            Assert.True(_booleanValue.GetBoolean());
+            Assert.False(_booleanValue.GetBoolean());
 
             Assert.True(_longAtomValue.GetBoolean());
             Assert.True(_shortAtomValue.GetBoolean());
             Assert.True(_realAtomValue.GetBoolean());
-            Assert.True(_booleanAtomValue.GetBoolean());
+            Assert.False(_booleanAtomValue.GetBoolean());
 
             Assert.Null(_stringAtomValue.GetBoolean());
             Assert.Null(_voidValue.GetBoolean());
@@ -112,27 +112,37 @@ namespace HaloScriptPreprocessor.Tests.Interpreter
         public void IsEqual_Test()
         {
             Value[] values = { _longValue, _shortValue, _realValue, _booleanValue };
-            Value[] atomicValues = { _longValue, _shortValue, _realValue, _booleanValue, _stringAtomValue, _voidValue };
+            Value[] atomicValues = { _longAtomValue, _shortAtomValue, _realAtomValue, _booleanAtomValue, _stringAtomValue, _voidValue };
             for (int i = 0; i < values.Length; i++)
                 for (int j = 0; j < atomicValues.Length; j++)
-                    Assert.Equal(i == j, values[i].IsEqual(atomicValues[j]));
+                    Assert.Equal(i == j, values[i].IsEqual(atomicValues[j]) ?? false);
             for (int i = 0; i < values.Length; i++)
                 for (int j = 0; j < atomicValues.Length; j++)
-                    Assert.Equal(i == j, atomicValues[j].IsEqual(values[i]));
+                    Assert.Equal(i == j, atomicValues[j].IsEqual(values[i]) ?? false);
         }
 
         [Fact]
+        public void IsEqual_EqualToSelf()
+        {
+            Value[] values = { _longValue, _shortValue, _realValue, _booleanValue,
+            _longAtomValue, _shortAtomValue, _realAtomValue, _booleanAtomValue, _stringAtomValue, _voidValue };
+
+            foreach (Value value in values)
+                Assert.True(value.IsEqual(value));
+        }
+
+            [Fact]
         public void GetString_Test()
         {
             Assert.Equal("200000", _longValue.GetString());
             Assert.Equal("2", _shortValue.GetString());
             Assert.Equal("5.1", _realValue.GetString());
-            Assert.Equal("true", _booleanValue.GetString());
+            Assert.Equal("false", _booleanValue.GetString());
 
             Assert.Equal("200000", _longAtomValue.GetString());
             Assert.Equal("2", _shortAtomValue.GetString());
             Assert.Equal("5.1", _realAtomValue.GetString());
-            Assert.Equal("true", _booleanAtomValue.GetString());
+            Assert.Equal("false", _booleanAtomValue.GetString());
 
             Assert.Equal("Hello world!", _stringAtomValue.GetString());
             Assert.Null(_voidValue.GetString());

@@ -146,12 +146,12 @@ namespace HaloScriptPreprocessor.Interpreter
         public bool? IsEqual(Value other)
         {
             if (this.Contents.Index == other.Contents.Index)
-                return Contents.Value == other.Contents.Value;
+                return Contents.Value.Equals(other.Contents.Value);
             if (Contents.IsT0 || other.Contents.IsT0)
                 return false;
             return Contents.Match<bool?>(
                 _ => false,
-                _ => other.Equals(this), // uno reverso
+                _ => other.IsEqual(this), // uno reverso
                 @long =>
                 {
                     var otherValue = other.GetLong();
