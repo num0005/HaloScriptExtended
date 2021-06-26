@@ -1,0 +1,289 @@
+﻿using HaloScriptPreprocessor.Interpreter;
+using System;
+using System.IO;
+using System.Reflection;
+using Xunit;
+using System.Linq;
+
+namespace HaloScriptPreprocessor.Tests.Interpreter
+{
+    public class InterpreterTests
+    {
+        public InterpreterTests()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = "HaloScriptPreprocessor.Tests.Interpreter.Test.hsc";
+            string testFile;
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                testFile = reader.ReadToEnd();
+            }
+            Parser.ASTBuilder builder = new(testFile);
+            _interpreter = new(builder.Ast);
+            _ast = builder.Ast;
+        }
+        private readonly HaloScriptPreprocessor.AST.AST _ast;
+        private readonly HaloScriptPreprocessor.Interpreter.Interpreter _interpreter;
+
+        private HaloScriptPreprocessor.AST.Global GetGlobal(string name)
+        {
+            var global = _ast.Get(name);
+            Assert.IsType<HaloScriptPreprocessor.AST.Global>(global);
+            return global as HaloScriptPreprocessor.AST.Global;
+        }
+
+        private void CheckValueIsString(Value value)
+        {
+            Assert.NotNull(value.GetString());
+            Assert.Null(value.GetBoolean());
+            Assert.Null(value.GetFloat());
+            Assert.Null(value.GetLong());
+            Assert.Null(value.GetShort());
+        }
+
+        [Fact]
+        public void InterpretGlobal_ConstantGlobalString()
+        {
+            var conststringGlobal = GetGlobal("conststring");
+
+            var result = _interpreter.InterpretGlobal(conststringGlobal);
+            Assert.NotNull(result);
+
+            // check type
+            CheckValueIsString(result);
+
+            // check value
+            Assert.Equal("A constglobal string!", result.GetString());
+        }
+
+        [Fact]
+        public void InterpretGlobal_ConstantGlobalLong()
+        {
+            var global = GetGlobal("constlong");
+
+            var result = _interpreter.InterpretGlobal(global);
+            Assert.NotNull(result);
+
+            // check value
+            Assert.Equal(117, result.GetLong());
+        }
+
+        [Fact]
+        public void InterpretGlobal_ConstantGlobalReal()
+        {
+            var global = GetGlobal("constreal");
+
+            var result = _interpreter.InterpretGlobal(global);
+            Assert.NotNull(result);
+
+            // check value
+            Assert.Equal(117.0f, result.GetFloat());
+        }
+
+        [Fact]
+        public void InterpretGlobal_NonConstant()
+        {
+            Assert.Null(_interpreter.InterpretGlobal(GetGlobal("otherstring")));
+            Assert.Null(_interpreter.InterpretGlobal(GetGlobal("otherlong")));
+            Assert.Null(_interpreter.InterpretGlobal(GetGlobal("otherreal")));
+        }
+
+        [Fact]
+        public void InterpretValue_Generic()
+        {
+            var global = GetGlobal("otherreal");
+            var result = _interpreter.InterpretValue(global.Value);
+            Assert.NotNull(result);
+            Assert.Equal(117.0f, result.GetFloat());
+        }
+
+        [Fact]
+        public void InterpretCode_Generic()
+        {
+            var global = GetGlobal("otherreal");
+            var result = _interpreter.InterpretCode(global.Value.Content.AsT1);
+            Assert.NotNull(result);
+            Assert.Equal(117.0f, result.GetFloat());
+        }
+
+        [Fact]
+        public void IsInCache()
+        {
+            var global = GetGlobal("conststring");
+            Assert.False(_interpreter.IsInCache(global));
+            _interpreter.InterpretGlobal(global);
+            Assert.True(_interpreter.IsInCache(global));
+        }
+
+        public HaloScriptPreprocessor.AST.Value[] GetTestValues()
+        {
+            var node = _ast.Get("test_script");
+            Assert.IsType<HaloScriptPreprocessor.AST.Script>(node);
+            var script = node as HaloScriptPreprocessor.AST.Script;
+            var values = script.Codes.ToArray();
+            return values;
+        }
+
+        [Fact]
+        public void InterpretValue_mul()
+        {
+            HaloScriptPreprocessor.AST.Value[] values = GetTestValues();
+
+            var result = _interpreter.InterpretValue(values[0]);
+            Assert.NotNull(result);
+            Assert.Equal(117.0f, result.GetFloat());
+
+            Assert.Null(_interpreter.InterpretValue(values[4]));
+
+            var result2 = _interpreter.InterpretValue(values[5]);
+            Assert.NotNull(result2);
+            Assert.Equal(234.0f, result2.GetFloat());
+        }
+
+        [Fact]
+        public void InterpretValue_equ()
+        {
+            HaloScriptPreprocessor.AST.Value[] values = GetTestValues();
+
+            var result = _interpreter.InterpretValue(values[1]);
+            Assert.NotNull(result);
+            Assert.Equal(false, result.GetBoolean());
+
+            var result2 = _interpreter.InterpretValue(values[2]);
+            Assert.NotNull(result2);
+            Assert.Equal(true, result2.GetBoolean());
+
+            Assert.Null(_interpreter.InterpretValue(values[3]));
+        }
+
+        [Fact]
+        public void InterpretValue_and()
+        {
+            HaloScriptPreprocessor.AST.Value[] values = GetTestValues();
+
+            var result = _interpreter.InterpretValue(values[6]);
+            Assert.NotNull(result);
+            Assert.Equal(false, result.GetBoolean());
+
+            var result2 = _interpreter.InterpretValue(values[7]);
+            Assert.NotNull(result2);
+            Assert.Equal(true, result2.GetBoolean());
+
+            Assert.Null(_interpreter.InterpretValue(values[8]));
+        }
+
+        [Fact]
+        public void InterpretValue_or()
+        {
+            HaloScriptPreprocessor.AST.Value[] values = GetTestValues();
+
+            var result = _interpreter.InterpretValue(values[9]);
+            Assert.NotNull(result);
+            Assert.Equal(true, result.GetBoolean());
+
+            var result2 = _interpreter.InterpretValue(values[10]);
+            Assert.NotNull(result2);
+            Assert.Equal(true, result2.GetBoolean());
+
+            var result3 = _interpreter.InterpretValue(values[11]);
+            Assert.NotNull(result3);
+            Assert.Equal(true, result3.GetBoolean());
+
+            var result4 = _interpreter.InterpretValue(values[12]);
+            Assert.NotNull(result4);
+            Assert.Equal(false, result4.GetBoolean());
+
+            Assert.Null(_interpreter.InterpretValue(values[13]));
+        }
+
+        [Fact]
+        public void InterpretValue_add()
+        {
+            HaloScriptPreprocessor.AST.Value[] values = GetTestValues();
+
+            var result = _interpreter.InterpretValue(values[14]);
+            Assert.NotNull(result);
+            Assert.Equal(5.0f, result.GetFloat());
+
+            var result2 = _interpreter.InterpretValue(values[15]);
+            Assert.NotNull(result2);
+            Assert.Equal(12.0f, result2.GetFloat());
+
+            Assert.Null(_interpreter.InterpretValue(values[16]));
+            Assert.Null(_interpreter.InterpretValue(values[17]));
+        }
+
+        [Fact]
+        public void InterpretValue_sub()
+        {
+            HaloScriptPreprocessor.AST.Value[] values = GetTestValues();
+
+            var result = _interpreter.InterpretValue(values[18]);
+            Assert.NotNull(result);
+            Assert.Equal(-1.0f, result.GetFloat());
+
+            Assert.Null(_interpreter.InterpretValue(values[19]));
+            Assert.Null(_interpreter.InterpretValue(values[20]));
+            Assert.Null(_interpreter.InterpretValue(values[21]));
+            Assert.Null(_interpreter.InterpretValue(values[22]));
+        }
+
+        [Fact]
+        public void InterpretValue_div()
+        {
+            HaloScriptPreprocessor.AST.Value[] values = GetTestValues();
+
+            Assert.Null(_interpreter.InterpretValue(values[23]));
+
+            var result = _interpreter.InterpretValue(values[24]);
+            Assert.NotNull(result);
+            Assert.Equal(5.0f, result.GetFloat());
+
+            Value result2 = _interpreter.InterpretValue(values[25]);
+            Assert.NotNull(result2);
+            Assert.NotNull(result2.GetFloat());
+            Assert.True(float.IsInfinity(result2.GetFloat().Value));
+        }
+
+        [Fact]
+        public void InterpretValue_min()
+        {
+            HaloScriptPreprocessor.AST.Value[] values = GetTestValues();
+
+            var result = _interpreter.InterpretValue(values[26]);
+            Assert.NotNull(result);
+            Assert.Equal(0.0f, result.GetFloat());
+
+            Assert.Null(_interpreter.InterpretValue(values[27]));
+        }
+
+        [Fact]
+        public void InterpretValue_max()
+        {
+            HaloScriptPreprocessor.AST.Value[] values = GetTestValues();
+
+            var result = _interpreter.InterpretValue(values[28]);
+            Assert.NotNull(result);
+            Assert.Equal(3.0f, result.GetFloat());
+
+            Assert.Null(_interpreter.InterpretValue(values[29]));
+        }
+
+        [Fact]
+        public void InterpretValue_neq()
+        {
+            HaloScriptPreprocessor.AST.Value[] values = GetTestValues();
+
+            var result = _interpreter.InterpretValue(values[30]);
+            Assert.NotNull(result);
+            Assert.Equal(true, result.GetBoolean());
+
+            var result2 = _interpreter.InterpretValue(values[31]);
+            Assert.NotNull(result2);
+            Assert.Equal(false, result2.GetBoolean());
+
+            Assert.Null(_interpreter.InterpretValue(values[32]));
+        }
+    }
+}

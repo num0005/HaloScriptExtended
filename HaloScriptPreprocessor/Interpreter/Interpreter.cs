@@ -152,15 +152,10 @@ namespace HaloScriptPreprocessor.Interpreter
                 }
                 else if (functionName.SequenceEqual("-"))
                 {
-                    float? result = null;
-                    foreach (AST.Value arg in code.Arguments)
-                    {
-                        float? value = interpretRealValue(arg);
-                        if (value is null)
-                            return null;
-                        result = (result ?? 0.0f) - value;
-                    }
-                    return (result is null) ? null : new Value((float)result);
+                    (float, float)? args = interpretBinaryFloatArguments(code.Arguments);
+                    if (args is not (float, float) results)
+                        return null;
+                    return new Value(results.Item1 - results.Item2);
                 }
                 else if (functionName.SequenceEqual("*"))
                 {
@@ -201,7 +196,7 @@ namespace HaloScriptPreprocessor.Interpreter
                         float? value = interpretRealValue(arg);
                         if (value is not float number)
                             return null;
-                        result = MathF.Min((result ?? number), number);
+                        result = MathF.Max((result ?? number), number);
                     }
                     return (result is null) ? null : new Value((float)result);
                 }
