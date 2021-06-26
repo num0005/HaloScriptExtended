@@ -108,10 +108,13 @@ namespace HaloScriptPreprocessor.Interpreter
                     ReadOnlySpan<char> span = atom.ToSpan();
                     float real;
                     long @long;
+                    bool boolean;
                     if (long.TryParse(span, out @long))
                         return @long != 0;
                     else if (float.TryParse(span, out real))
                         return real != 0.0f;
+                    else if (bool.TryParse(span, out boolean))
+                        return boolean;
                     else
                         return null;
                 },
@@ -120,6 +123,15 @@ namespace HaloScriptPreprocessor.Interpreter
                 real => real != 0.0f,
                 boolean => boolean
                 );
+        }
+
+        /// <summary>
+        /// Check if the value can be represented as a boolean or number
+        /// </summary>
+        /// <returns></returns>
+        public bool IsNotString()
+        {
+            return GetFloat() is not null || GetBoolean() is not null;
         }
 
         public bool? IsEqual(Value other)

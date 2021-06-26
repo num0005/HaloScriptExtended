@@ -192,7 +192,11 @@ namespace HaloScriptPreprocessor.Tests.Interpreter
 
             var result4 = _interpreter.InterpretValue(values[12]);
             Assert.NotNull(result4);
-            Assert.Equal(false, result4.GetBoolean());
+            Assert.Equal(true, result4.GetBoolean());
+
+            var result5 = _interpreter.InterpretValue(values[33]);
+            Assert.NotNull(result5);
+            Assert.Equal(false, result5.GetBoolean());
 
             Assert.Null(_interpreter.InterpretValue(values[13]));
         }

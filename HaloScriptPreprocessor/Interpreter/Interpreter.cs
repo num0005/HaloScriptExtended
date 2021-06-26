@@ -69,6 +69,24 @@ namespace HaloScriptPreprocessor.Interpreter
                 return null;
             return ((float)a, (float)b);
         }
+
+        private (bool, bool)? interpretBinaryBooleanArguments(LinkedList<AST.Value> args)
+        {
+            var first = args.First;
+            if (first is null)
+                return null;
+            var second = first.Next;
+            if (second is null)
+                return null;
+            if (second.Next is not null)
+                return null;
+            bool? a = interpretBooleanValue(first.Value);
+            bool? b = interpretBooleanValue(second.Value);
+            if (a is null || b is null)
+                return null;
+            return ((bool)a, (bool)b);
+        }
+
         private (Value, Value)? interpretBinaryArguments(LinkedList<AST.Value> args)
         {
             var first = args.First;
@@ -114,16 +132,16 @@ namespace HaloScriptPreprocessor.Interpreter
                 }
                 else if (functionName.SequenceEqual("and"))
                 {
-                    bool? result = null;
+                    bool hasResult = false;
                     foreach (AST.Value arg in code.Arguments)
                     {
                         if (interpretBooleanValue(arg) is not bool value)
                             return null;
                         if (!value)
                             return new Value(false);
-                        result ??= true;
+                        hasResult = true;
                     }
-                    return (result is null) ? null : new Value((bool)result);
+                    return hasResult ? new Value(true) : null;
                 }
                 else if (functionName.SequenceEqual("or"))
                 {
@@ -204,6 +222,8 @@ namespace HaloScriptPreprocessor.Interpreter
                 {
                     if (interpretBinaryArguments(code.Arguments) is not (Value, Value) args)
                         return null;
+                    if (!args.Item1.IsNotString() || !args.Item2.IsNotString())
+                        return null;
                     if (args.Item1.IsEqual(args.Item2) is not bool equal)
                         return null;
                     return new Value(equal);
@@ -211,6 +231,8 @@ namespace HaloScriptPreprocessor.Interpreter
                 else if (functionName.SequenceEqual("!="))
                 {
                     if (interpretBinaryArguments(code.Arguments) is not (Value, Value) args)
+                        return null;
+                    if (!args.Item1.IsNotString() || !args.Item2.IsNotString())
                         return null;
                     if (args.Item1.IsEqual(args.Item2) is not bool equal)
                         return null;

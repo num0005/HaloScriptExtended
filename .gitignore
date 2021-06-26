@@ -1,5 +1,4 @@
 *.lisp
-*.hsc
 *.hscx
 */obj/*
 */bin/*
