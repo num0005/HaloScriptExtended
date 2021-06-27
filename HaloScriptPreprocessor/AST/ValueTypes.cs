@@ -1,4 +1,9 @@
-﻿namespace HaloScriptPreprocessor.AST
+﻿/*
+ Copyright (c) num0005. Some rights reserved
+ Released under the MIT License, see LICENSE.md for more information.
+*/
+
+namespace HaloScriptPreprocessor.AST
 {
     // todo enum
     public class ValueType

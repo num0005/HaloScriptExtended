@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ Copyright (c) num0005. Some rights reserved
+ Released under the MIT License, see LICENSE.md for more information.
+*/
+
+using System;
 
 namespace HaloScriptPreprocessor.Parser
 {

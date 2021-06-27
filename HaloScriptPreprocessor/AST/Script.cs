@@ -1,4 +1,9 @@
-﻿using System.Collections.Generic;
+﻿/*
+ Copyright (c) num0005. Some rights reserved
+ Released under the MIT License, see LICENSE.md for more information.
+*/
+
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HaloScriptPreprocessor.AST

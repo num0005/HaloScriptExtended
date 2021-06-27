@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ Copyright (c) num0005. Some rights reserved
+ Released under the MIT License, see LICENSE.md for more information.
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -7,19 +12,6 @@ using System.Runtime.CompilerServices;
 namespace HaloScriptPreprocessor.Parser
 {
     public record SourceFile(string Data, string FileName, Expression? SourceExpression);
-
-    /*
-
-    /// <summary>
-    /// Location in the source
-    /// </summary>
-    public record SourceLocation(
-        int Offset, // Offset in the source string
-        int Line, // line (used for debugging)
-        int Column // column (used for debugging)
-    );
-    */
-
     public struct SourceLocation
     {
         public SourceLocation(int Offset, int Line, int Column)

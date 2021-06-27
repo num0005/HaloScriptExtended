@@ -1,4 +1,9 @@
-﻿using OneOf;
+﻿/*
+ Copyright (c) num0005. Some rights reserved
+ Released under the MIT License, see LICENSE.md for more information.
+*/
+
+using OneOf;
 using System;
 using System.Collections.Generic;
 
