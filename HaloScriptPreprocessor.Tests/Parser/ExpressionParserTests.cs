@@ -1,4 +1,9 @@
-﻿using HaloScriptPreprocessor.Parser;
+﻿/*
+ Copyright (c) num0005. Some rights reserved
+ Released under the MIT License, see LICENSE.md for more information.
+*/
+
+using HaloScriptPreprocessor.Parser;
 using Microsoft.Toolkit.HighPerformance;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OneOf;

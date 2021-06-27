@@ -1,4 +1,8 @@
-﻿; example file
+﻿; Copyright (c) num0005. Some rights reserved
+; Released under the MIT License, see LICENSE.md for more information.
+
+
+; example file
 
 ; single line comment
 "this is a multi-line

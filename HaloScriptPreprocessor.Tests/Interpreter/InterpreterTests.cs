@@ -1,4 +1,9 @@
-﻿using HaloScriptPreprocessor.Interpreter;
+﻿/*
+ Copyright (c) num0005. Some rights reserved
+ Released under the MIT License, see LICENSE.md for more information.
+*/
+
+using HaloScriptPreprocessor.Interpreter;
 using Xunit;
 using System.Linq;
 

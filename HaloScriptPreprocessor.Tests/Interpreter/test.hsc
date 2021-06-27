@@ -1,4 +1,9 @@
-﻿(constglobal string conststring "A constglobal string!")
+﻿"
+ Copyright (c) num0005. Some rights reserved
+ Released under the MIT License, see LICENSE.md for more information.
+"
+
+(constglobal string conststring "A constglobal string!")
 (constglobal long constlong (* 3 3 13))
 (constglobal long constreal (* 3 3 13))
 
