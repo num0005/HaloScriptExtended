@@ -49,7 +49,9 @@ namespace HaloScriptPreprocessor.Parser
             get
             {
                 Debug.Assert(!_isPartial);
-                return _file.Data.AsSpan().Slice(start: Start.Offset, length: (End.Value.Offset - Start.Offset));
+#pragma warning disable CS8629 // Nullable value type may be null.
+                return _file.Data.AsSpan()[Start.Offset..End.Value.Offset];
+#pragma warning restore CS8629 // Nullable value type may be null.
             }
         }
         public string Contents

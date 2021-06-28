@@ -151,7 +151,9 @@ namespace HaloScriptPreprocessor.Parser
                     // this only handles the case of the bracket being immediately after the token, other cases are handles elsewhere
                     _currentOffset -= 1;
                     _currentColunm -= 1;
+#pragma warning disable CS8629 // Nullable value type may be null.
                     return endToken(tokenStart.Value, currentLocation);
+#pragma warning restore CS8629 // Nullable value type may be null.
                 }
                 else
                 {
@@ -188,7 +190,9 @@ namespace HaloScriptPreprocessor.Parser
                         _currentColunm = 0;
                         _inStandardComment = false;
                         if (inToken())
+#pragma warning disable CS8629 // Nullable value type may be null.
                             return endToken(tokenStart.Value, newlineStart);
+#pragma warning restore CS8629 // Nullable value type may be null.
                         continue;
                     case '\n':
                         newlineStart = getLocation();
@@ -196,7 +200,9 @@ namespace HaloScriptPreprocessor.Parser
                         _currentColunm = 0;
                         _inStandardComment = false;
                         if (inToken())
+#pragma warning disable CS8629 // Nullable value type may be null.
                             return endToken(tokenStart.Value, newlineStart);
+#pragma warning restore CS8629 // Nullable value type may be null.
                         continue;
                     case '"':
                         if (inComment())
@@ -223,7 +229,9 @@ namespace HaloScriptPreprocessor.Parser
                         }
                         if (inQuoteToken())
                         {
+#pragma warning disable CS8629 // Nullable value type may be null.
                             return endToken(quoteStartLocation.Value, new SourceLocation(_currentOffset + 1, _currentLine, _currentColunm + 1));
+#pragma warning restore CS8629 // Nullable value type may be null.
                         }
                         else
                         {
@@ -235,7 +243,9 @@ namespace HaloScriptPreprocessor.Parser
                         {
                             _inStandardComment = true;
                             if (inToken())
+#pragma warning disable CS8629 // Nullable value type may be null.
                                 return endToken(tokenStart.Value, getLocation());
+#pragma warning restore CS8629 // Nullable value type may be null.
 
                         }
                         continue;
@@ -257,7 +267,9 @@ namespace HaloScriptPreprocessor.Parser
                     case ' ':
                     case '\t':
                         if (!inComment() && inToken())
+#pragma warning disable CS8629 // Nullable value type may be null.
                             return (TokenType.Atomic, CreateSource(tokenStart.Value, getLocation()));
+#pragma warning restore CS8629 // Nullable value type may be null.
                         continue;
                     case '(':
                         if (inComment() || inQuoteToken())
@@ -275,7 +287,9 @@ namespace HaloScriptPreprocessor.Parser
             }
             if (inQuoteToken())
             {
+#pragma warning disable CS8629 // Nullable value type may be null.
                 throw new UnterminatedElement(quoteStartLocation.Value, "quote/string is not terminated!");
+#pragma warning restore CS8629 // Nullable value type may be null.
             }
             // reached EOF
             return null;

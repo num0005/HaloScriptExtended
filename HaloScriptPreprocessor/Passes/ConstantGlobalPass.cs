@@ -38,10 +38,10 @@ namespace HaloScriptPreprocessor.Passes
             if (value.Content.Value is Global global && global.IsConst)
             {
                 Interpreter.Value? intGlobal = _interpreter.InterpretGlobal(global);
-                if (intGlobal is null)
+                if (intGlobal is null || intGlobal.GetString() is not string globalStringValue)
                     value.Content = global.Value.Content;
                 else
-                    value.Content = new AST.Atom(intGlobal.GetString(), value);
+                    value.Content = new Atom(globalStringValue, value);
             }
         }
 

@@ -64,7 +64,7 @@ namespace HaloScriptPreprocessor.Tests.AST
         [Fact]
         public void Clone_Test()
         {
-            Node? parent = null;
+            Node parent = null;
 
             // Act
             var result = _atom.Clone(

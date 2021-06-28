@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaloScriptPreprocessor", "H
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaloScriptPreprocessor.Tests", "HaloScriptPreprocessor.Tests\HaloScriptPreprocessor.Tests.csproj", "{D2E25E34-5807-4352-BFDF-8E9A17589E4C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrivateObjectType", "PrivateObject\PrivateObjectType.csproj", "{4EFB4124-FF72-4CBB-ADC7-6E55BCB785CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrivateObjectType", "PrivateObject\PrivateObjectType.csproj", "{4EFB4124-FF72-4CBB-ADC7-6E55BCB785CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

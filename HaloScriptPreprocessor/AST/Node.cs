@@ -44,6 +44,11 @@ namespace HaloScriptPreprocessor.AST
 
     public abstract class NodeNamed : Node
     {
+        protected NodeNamed(NodeNamed other) : base(other.Source)
+        {
+            ParentNode = null;
+            _name = other.Name.Clone(this);
+        }
         public NodeNamed(Parser.Value source, Atom name) : base(source)
         {
             ParentNode = null;

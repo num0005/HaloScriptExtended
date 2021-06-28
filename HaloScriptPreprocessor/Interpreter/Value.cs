@@ -190,7 +190,7 @@ namespace HaloScriptPreprocessor.Interpreter
 
         public string? GetString()
         {
-            return Contents.Match(
+            return Contents.Match<string?>(
                 _ => null,
                 atom => atom.ToString(),
                 @long => @long.ToString(),

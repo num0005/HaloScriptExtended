@@ -9,9 +9,12 @@ namespace HaloScriptPreprocessor.AST
 {
     public class Global : NodeNamed
     {
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        private Global(Parser.Value value) : base(value, null) { }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        private Global(Global global, Node? parent) : base(global) {
+            ParentNode = parent;
+            ValueType = global.ValueType;
+            Value = global.Value.Clone(this);
+            IsConst = global.IsConst;
+        }
         public Global(Parser.Expression source, Atom name, ValueType type, Value value) : base(source, name)
         {
             ValueType = type;
@@ -27,15 +30,7 @@ namespace HaloScriptPreprocessor.AST
 
         public override Global Clone(Node? parent = null)
         {
-#pragma warning disable CS8604 // Possible null reference argument.
-            Global clonedGlobal = new(Source);
-#pragma warning restore CS8604 // Possible null reference argument.
-            clonedGlobal._name = Name.Clone(clonedGlobal);
-            clonedGlobal.ValueType = ValueType;
-            clonedGlobal.Value = Value.Clone(clonedGlobal);
-            clonedGlobal.IsConst = IsConst;
-
-            return clonedGlobal;
+            return new Global(this, parent);
         }
 
         public override void Rewrite(Dictionary<Value, Value> mapping)

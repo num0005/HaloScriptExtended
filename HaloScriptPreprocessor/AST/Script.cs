@@ -10,9 +10,15 @@ namespace HaloScriptPreprocessor.AST
 {
     public class Script : NodeNamed
     {
-        public Script(Parser.Value? source, Atom atom) : base(source, null)
+        public Script(Script script, Node? parent) : base(script)
         {
-            _name = atom.Clone(this);
+            ParentNode = parent;
+            ReturnValueType = script.ReturnValueType;
+            Type = script.Type;
+            if (script.Arguments is not null)
+                Arguments = script.Arguments.ToList();
+            foreach (Value code in script.Codes)
+                Codes.AddLast(code.Clone(this));
         }
         public Script(Parser.Expression source, ScriptType type, Atom name, LinkedList<Value> code, ValueType? valueType = null, List<(ValueType type, Atom name)>? arguments = null) : base(source, name)
         {
@@ -41,14 +47,7 @@ namespace HaloScriptPreprocessor.AST
 
         public override Script Clone(Node? parent = null)
         {
-            Script clonedScript = new(Source, ScriptName);
-            clonedScript.ReturnValueType = ReturnValueType;
-            clonedScript.Type = Type;
-            if (Arguments is not null)
-                clonedScript.Arguments = Arguments.ToList();
-            foreach (Value code in Codes)
-                clonedScript.Codes.AddLast(code.Clone(clonedScript));
-            return clonedScript;
+            return new Script(this, parent);
         }
 
         public override void Rewrite(Dictionary<Value, Value> mapping)
