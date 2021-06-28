@@ -45,3 +45,20 @@ jobs:
       run: dotnet build --configuration Release
     - name: Test
       run: dotnet test -v n
+  build-macos:
+
+    runs-on: macos-latest # run on MacOS cause we can
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT : true
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '5.0.300'
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release
+    - name: Test
+      run: dotnet test -v n
