@@ -66,4 +66,16 @@
 	(<= 3 3) ; 47 - true
 	(<= 4 3) ; 48 - false
 	(<= 4 min) ; 49 - undefined
+	(begin (+ 2 4) (+ 10 2)) ; 50 - 12
+	(begin (something 2 4) (+ 10 2)) ; 51 - undefined
+	(if true (+ 3 2)) ; 52 - 5
+	(if false (+ 3 2)) ; 53 - undefined
+	(if false (+ 3 2) 10) ; 54 - 10
+	(if unk (+ 3 2) 10) ; 55 - undefined
+	(test_script_2) ; 56 - "test_script_time!"
+)
+
+(script static string test_script_2
+	(+ 3 4)
+	"test_script_time!"
 )

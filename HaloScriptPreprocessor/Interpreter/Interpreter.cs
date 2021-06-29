@@ -110,12 +110,31 @@ namespace HaloScriptPreprocessor.Interpreter
         }
 
 
+        private Value? InterpretValueList(LinkedList<AST.Value> list)
+        {
+            Value? value = null;
+            LinkedListNode<AST.Value>? argument = list.First;
+            while (argument is not null)
+            {
+                value = InterpretValue(argument.Value);
+                if (value is null)
+                    return null;
+                argument = argument.Next;
+            }
+            return value;
+        }
+
+
         public Value? InterpretCode(AST.Code code)
         {
             return interpret(code, code =>
             {
                 ReadOnlySpan<char> functionName = code.FunctionSpan;
-                if (functionName.SequenceEqual("if"))
+                if (functionName.SequenceEqual("begin"))
+                {
+                    return InterpretValueList(code.Arguments);
+                }
+                else if (functionName.SequenceEqual("if"))
                 {
                     if (code.Arguments.First is not LinkedListNode<AST.Value> first)
                         return null;
@@ -291,8 +310,7 @@ namespace HaloScriptPreprocessor.Interpreter
             {
                 if (code.Arguments.Count != 0)
                     return null; // todo throw an error here
-                return null; // todo implement
-
+                return InterpretValueList(userScript.Codes);
             }
             else if (userScript.Type == AST.ScriptType.Macro)
             {
@@ -310,9 +328,22 @@ namespace HaloScriptPreprocessor.Interpreter
             return result;
         }
 
+        /// <summary>
+        /// Check if a node value is cached
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns>Whatever <c>node</c> is in the cache</returns>
         public bool IsInCache(AST.Node node)
         {
             return _valueCache.ContainsKey(node);
+        }
+
+        /// <summary>
+        /// Clear the cache
+        /// </summary>
+        public void InvalidateCache()
+        {
+            _valueCache.Clear();
         }
 
         private readonly Dictionary<AST.Node, Value?> _valueCache = new();

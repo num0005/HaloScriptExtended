@@ -123,6 +123,15 @@ namespace HaloScriptPreprocessor.Passes
             _visted.Add(node);
             return false;
         }
+
+        /// <summary>
+        /// Clear the list of visited nodes
+        /// </summary>
+        public void ClearVisited()
+        {
+            _visted.Clear();
+        }
+
         private readonly List<string> _removeList = new();
         private readonly HashSet<AST.Node> _visted = new();
         private readonly AST.AST _ast;

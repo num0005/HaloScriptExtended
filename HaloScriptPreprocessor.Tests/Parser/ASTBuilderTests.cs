@@ -24,7 +24,7 @@ namespace HaloScriptPreprocessor.Tests.Parser
         private PrivateObject _privateObject;
 
         [Theory]
-        [InlineData("HaloScriptPreprocessor.Tests.Interpreter.test.hsc", 7)]
+        [InlineData("HaloScriptPreprocessor.Tests.Interpreter.test.hsc", 8)]
         [InlineData("HaloScriptPreprocessor.Tests.Parser.test.hsc", 3)]
         public void BasicTest(string resourceFile, int namedCount)
         {

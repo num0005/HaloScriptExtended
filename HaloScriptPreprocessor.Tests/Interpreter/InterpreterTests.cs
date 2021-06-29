@@ -28,6 +28,13 @@ namespace HaloScriptPreprocessor.Tests.Interpreter
             return global as HaloScriptPreprocessor.AST.Global;
         }
 
+        private HaloScriptPreprocessor.AST.Script GetScript(string name)
+        {
+            var script = _ast.Get(name);
+            Assert.IsType<HaloScriptPreprocessor.AST.Script>(script);
+            return script as HaloScriptPreprocessor.AST.Script;
+        }
+
         private void CheckValueIsString(Value value)
         {
             Assert.NotNull(value.GetString());
@@ -117,11 +124,7 @@ namespace HaloScriptPreprocessor.Tests.Interpreter
         /// <returns>Array of values from the script</returns>
         public HaloScriptPreprocessor.AST.Value[] GetTestValues()
         {
-            var node = _ast.Get("test_script");
-            Assert.IsType<HaloScriptPreprocessor.AST.Script>(node);
-            var script = node as HaloScriptPreprocessor.AST.Script;
-            var values = script.Codes.ToArray();
-            return values;
+            return GetScript("test_script").Codes.ToArray();
         }
 
         [Fact]
@@ -367,6 +370,46 @@ namespace HaloScriptPreprocessor.Tests.Interpreter
             Assert.Equal(false, result3.GetBoolean());
 
             Assert.Null(_interpreter.InterpretValue(values[49]));
+        }
+
+        [Fact]
+        public void InterpretValue_begin()
+        {
+            HaloScriptPreprocessor.AST.Value[] values = GetTestValues();
+
+            var result = _interpreter.InterpretValue(values[50]);
+            Assert.NotNull(result);
+            Assert.Equal(12, result.GetLong());
+
+            Assert.Null(_interpreter.InterpretValue(values[51]));
+        }
+
+        [Fact]
+        public void InterpretValue_if()
+        {
+            HaloScriptPreprocessor.AST.Value[] values = GetTestValues();
+
+            var result = _interpreter.InterpretValue(values[52]);
+            Assert.NotNull(result);
+            Assert.Equal(5, result.GetLong());
+
+            Assert.Null(_interpreter.InterpretValue(values[53]));
+
+            var result2 = _interpreter.InterpretValue(values[54]);
+            Assert.NotNull(result2);
+            Assert.Equal(10, result2.GetLong());
+
+            Assert.Null(_interpreter.InterpretValue(values[55]));
+        }
+
+        [Fact]
+        public void InterpretValue_userScriptStatic()
+        {
+            HaloScriptPreprocessor.AST.Value[] values = GetTestValues();
+
+            var result = _interpreter.InterpretValue(values[56]);
+            Assert.NotNull(result);
+            Assert.Equal("test_script_time!", result.GetString());
         }
     }
 }

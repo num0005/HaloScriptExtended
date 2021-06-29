@@ -25,8 +25,8 @@ namespace HaloScriptPreprocessor.Passes
         protected override void OnVisitValue(Value value)
         {
             Interpreter.Value? interuptedValue = _interpreter.InterpretValue(value);
-            if (interuptedValue is not null)
-                value.Content = new AST.Atom(interuptedValue.GetString(), value);
+            if (interuptedValue is not null && interuptedValue.GetString() is string valueString)
+                value.Content = new Atom(valueString, value);
             else if (value.Content.Value is Code code && SimplifyCode(code) is Code simpleCode)
                 value.Content = simpleCode;
         }
