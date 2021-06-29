@@ -13,12 +13,12 @@ namespace HaloScriptPreprocessor.Tests.Interpreter
     {
         public InterpreterTests()
         {
-            string testFile = ResourceHelper.Read("HaloScriptPreprocessor.Tests.Interpreter.test.hsc");
-            HaloScriptPreprocessor.Parser.ASTBuilder builder = new(testFile);
+            TestFileSystem testFS = new();
+            HaloScriptPreprocessor.Parser.ASTBuilder builder = new(testFS, "", _ast);
+            builder.Import(testFS.GetFile("HaloScriptPreprocessor.Tests.Interpreter.test.hsc"));
             _interpreter = new(builder.Ast);
-            _ast = builder.Ast;
         }
-        private readonly HaloScriptPreprocessor.AST.AST _ast;
+        private readonly HaloScriptPreprocessor.AST.AST _ast = new();
         private readonly HaloScriptPreprocessor.Interpreter.Interpreter _interpreter;
 
         private HaloScriptPreprocessor.AST.Global GetGlobal(string name)

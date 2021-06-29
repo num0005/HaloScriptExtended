@@ -14,23 +14,19 @@ namespace HaloScriptPreprocessor
 {
     class Program
     {
-        static void ProcessFile(string sourceDirectory, string outputDirectory, string file)
+        static void ProcessFile(IFileSystem fileSystem, string relativeFilePath)
         {
-            Parser.ASTBuilder builder = new(sourceDirectory, file);
-            Interpreter.Interpreter interpreter = new(builder.Ast);
-            Passes.ConstantGlobalPass constantGlobalPass = new(builder.Ast, interpreter);
-            Passes.LoopUnrolling loopUnrolling = new(builder.Ast, interpreter);
-            Passes.MacroExpansionPass macroExpansion = new(builder.Ast);
-            Passes.CompileTimeEvaluationPass compileTimeEvaluationPass = new(builder.Ast, interpreter);
-            constantGlobalPass.Run();
-            loopUnrolling.Run();
-            macroExpansion.Run();
-            compileTimeEvaluationPass.Run();
-            using (StreamWriter writer = new StreamWriter(Path.Combine(outputDirectory, file)))
-            {
-                Emitter.HaloScriptEmitter emitter = new(@writer, builder.Ast);
-                emitter.Emit();
-            }
+            IFileSystem.IFile? sourceFile = fileSystem.GetFile("hscx_scripts" + fileSystem.DirectorySeparator + relativeFilePath);
+
+            Transpiler transpiler = new(fileSystem);
+            if (sourceFile is not null)
+                transpiler.AddFile(sourceFile);
+            else
+                throw new Exception("internal error!");
+
+            transpiler.RunPasses(Transpiler.Pass.Full);
+
+            transpiler.EmitCode(relativeFilePath);
         }
         static void Main(string[] args)
         {
@@ -40,9 +36,16 @@ namespace HaloScriptPreprocessor
                 return;
             }
             string scenarioDirectory = args[0];
+            PhysicalFileSystem fileSystem = new(scenarioDirectory);
 
             string sourceDirectory = Path.Combine(scenarioDirectory, "hscx_scripts");
             string outputDirectory = Path.Combine(scenarioDirectory, "scripts");
+
+            if (!Directory.Exists(sourceDirectory))
+            {
+                Console.WriteLine($"\"{sourceDirectory}\" not found, no scripts to process!");
+                return;
+            }
 
             Directory.CreateDirectory(outputDirectory);
 
@@ -52,7 +55,8 @@ namespace HaloScriptPreprocessor
             {
                 string relativeFilePath = Path.GetRelativePath(sourceDirectory, file);
                 Console.WriteLine($"Processing {relativeFilePath}");
-                ProcessFile(sourceDirectory, outputDirectory, relativeFilePath);
+
+                ProcessFile(fileSystem, relativeFilePath);
             }
 
             Console.WriteLine("Done!");

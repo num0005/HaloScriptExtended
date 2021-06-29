@@ -25,7 +25,17 @@ namespace HaloScriptPreprocessor.Passes
 
         protected override bool OnVisitGlobal(Global global)
         {
-            return global.IsConst;
+            if (!global.IsConst)
+                return false;
+            if (GetGlobalValueStrng(global) is null)
+            {
+                global.IsConst = false;
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
 
         protected override bool OnVisitScript(Script script)
@@ -37,12 +47,18 @@ namespace HaloScriptPreprocessor.Passes
         {
             if (value.Content.Value is Global global && global.IsConst)
             {
-                Interpreter.Value? intGlobal = _interpreter.InterpretGlobal(global);
-                if (intGlobal is null || intGlobal.GetString() is not string globalStringValue)
-                    value.Content = global.Value.Content;
-                else
+                if (GetGlobalValueStrng(global) is string globalStringValue)
                     value.Content = new Atom(globalStringValue, value);
             }
+        }
+
+        private string? GetGlobalValueStrng(Global global)
+        {
+            Interpreter.Value? intGlobal = _interpreter.InterpretGlobal(global);
+            if (intGlobal is null)
+                return null;
+            else
+                return intGlobal.GetString();
         }
 
         private Interpreter.Interpreter _interpreter;

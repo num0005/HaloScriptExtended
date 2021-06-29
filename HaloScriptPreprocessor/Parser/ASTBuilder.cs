@@ -59,51 +59,49 @@ namespace HaloScriptPreprocessor.Parser
             private int _index;
         }
 
-        public ASTBuilder(string directory, string mainFile)
+        public ASTBuilder(IFileSystem fileSystem, string directory, AST.AST ast)
         {
+            _fileSystem = fileSystem;
             _directory = directory;
-            _mainFile = mainFile;
+            _ast = ast;
+        }
+
+        /// <summary>
+        /// Import a file and all files referenced using <c>(import "filename")</c>
+        /// </summary>
+        /// <param name="fileName"></param>
+        public void Import(string fileName)
+        {
+            _addedNamed.Clear();
+
             // parse expressions
-            parseExpressions();
+            parseExpressions(fileName);
             // build AST from expressions
             build();
-
+            // Resolve the expressions
             resolve();
         }
 
         /// <summary>
-        /// Constructor for unit tests
+        /// Import a file and all files referenced using <c>(import "filename")</c>
         /// </summary>
-        /// <param name="fileContents">File contents</param>
-        internal ASTBuilder(string fileContents)
+        /// <param name="file"></param>
+        public void Import(IFileSystem.IFile file)
         {
-            _directory = "";
-            _mainFile = "fake.hsc";
+            _addedNamed.Clear();
 
             // parse expressions
-            SourceFile file = addSourceFile(_mainFile, fileContents, null);
-            parseSourceFile(file);
-            _parsed.Done();
+            parseExpressions(file);
             // build AST from expressions
             build();
-
+            // Resolve the expressions
             resolve();
-        }
-
-        /// <summary>
-        /// Constructor for unit tests
-        /// </summary>
-        private ASTBuilder()
-        {
-            _directory = "";
-            _mainFile = "fake.hsc";
         }
 
         private void resolve()
         {
-            foreach (KeyValuePair<string, AST.NodeNamed> entry in _ast.UserNameMapping)
+            foreach (AST.NodeNamed rootNode in _addedNamed)
             {
-                NodeNamed rootNode = entry.Value;
                 if (rootNode is Global global)
                     resolveValue(global.Value, global);
                 if (rootNode is Script script)
@@ -192,6 +190,7 @@ namespace HaloScriptPreprocessor.Parser
             NodeNamed? existing = _ast.Get(node.Name.ToString());
             if (existing is null)
             {
+                _addedNamed.Add(node);
                 _ast.Add(node);
             }
             else if (existing is Script oldScript && node is Script newScript)
@@ -202,6 +201,7 @@ namespace HaloScriptPreprocessor.Parser
                     return; // ignore the stub
                 if (newScript.Type == ScriptType.Static && oldScript.Type == ScriptType.Stub)
                 {
+                    _addedNamed.Add(node);
                     _ast.Add(node);
                     return;
                 }
@@ -336,10 +336,21 @@ namespace HaloScriptPreprocessor.Parser
         /// <summary>
         /// Parse all source files into expressions
         /// </summary>
-        private void parseExpressions()
+        private void parseExpressions(string sourceFile)
         {
             // import the primary file
-            importSourceFile(_mainFile);
+            importSourceFile(sourceFile);
+            // import files through import directives
+            handleImportDirectives();
+
+            // we are done, lock the expressions!
+            _parsed.Done();
+        }
+
+        private void parseExpressions(IFileSystem.IFile file)
+        {
+            // import the primary file
+            importMainFile(file);
             // import files through import directives
             handleImportDirectives();
 
@@ -385,8 +396,15 @@ namespace HaloScriptPreprocessor.Parser
             // only import each file once (maybe this should emit a warning?)
             if (_files.ContainsKey(fileName))
                 return;
-            SourceFile file = addSourceFile(fileName, sourceExpression);
-            parseSourceFile(file);
+            if (_fileSystem.GetFile(_directory + _fileSystem.DirectorySeparator + fileName) is IFileSystem.IFile file)
+                parseSourceFile(addSourceFile(file, sourceExpression));
+            else
+                throw new Exception("no such file!"); // todo emit an error here once new error handling is up
+        }
+
+        private void importMainFile(IFileSystem.IFile file)
+        {
+            parseSourceFile(addSourceFile(file));
         }
 
         private void parseSourceFile(SourceFile file)
@@ -396,29 +414,16 @@ namespace HaloScriptPreprocessor.Parser
         }
 
         /// <summary>
-        /// Add a source file to the source file index. Contents are read from disk.
-        /// </summary>
-        /// <param name="fileName">File name</param>
-        /// <param name="sourceExpression">Expression that caused the file to get added</param>
-        /// <returns>The source file object</returns>
-        private SourceFile addSourceFile(string fileName, Expression? sourceExpression)
-        {
-            string fsPath = Path.Combine(_directory, fileName);
-            return addSourceFile(fileName, File.ReadAllText(fsPath), sourceExpression);
-        }
-
-        /// <summary>
         /// Add a source file and its data to the source file index
         /// </summary>
-        /// <param name="fileName">File name</param>
-        /// <param name="data">File contents</param>
+        /// <param name="file">File object</param>
         /// <param name="sourceExpression">Expression that caused the file to get added</param>
         /// <returns>The source file object</returns>
-        private SourceFile addSourceFile(string fileName, string data, Expression? sourceExpression)
+        private SourceFile addSourceFile(IFileSystem.IFile file, Expression? sourceExpression = null)
         {
-            SourceFile file = new(Data: data, FileName: fileName, SourceExpression: sourceExpression);
-            _files[fileName] = file;
-            return file;
+            SourceFile sourceFile = new(Data: file.Contents, FileName: file.Name, SourceExpression: sourceExpression);
+            _files[file.Name] = sourceFile;
+            return sourceFile;
         }
 
         public AST.AST Ast => _ast;
@@ -427,11 +432,15 @@ namespace HaloScriptPreprocessor.Parser
 
         private readonly Dictionary<string, SourceFile> _files = new();
 
+        private readonly AST.AST _ast;
+
+        /// <summary>
+        /// Nodes added during the last call to 
+        /// </summary>
+        private readonly List<AST.NodeNamed> _addedNamed = new();
+
+        private readonly IFileSystem _fileSystem;
         private readonly string _directory;
-
-        private readonly string _mainFile;
-
-        private readonly AST.AST _ast = new();
 
     }
 }
