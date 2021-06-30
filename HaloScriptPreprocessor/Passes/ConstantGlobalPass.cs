@@ -8,6 +8,9 @@ using System.Collections.Generic;
 
 namespace HaloScriptPreprocessor.Passes
 {
+    /// <summary>
+    /// Attempts to evaluate <c>constglobal</c>'s or converts them to standard globals if that isn't possible
+    /// </summary>
     class ConstantGlobalPass : PassBase
     {
         public ConstantGlobalPass(AST.AST ast, Interpreter.Interpreter interpreter) : base(ast)

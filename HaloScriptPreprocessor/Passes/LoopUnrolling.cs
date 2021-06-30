@@ -21,20 +21,44 @@ namespace HaloScriptPreprocessor.Passes
         {
         }
 
+        private bool NeedBegin(Node parent)
+        {
+            if (parent is Script)
+                return false;
+            if (parent is Code code)
+                return !code.FunctionSpan.SequenceEqual("begin");
+            return true;
+        }
+
         protected override bool OnVisitCodeArgument(LinkedListNode<Value> argument, AST.Node parent)
         {
             if (argument.Value.Content.Value is Code code && code.FunctionSpan.SequenceEqual("loop"))
             {
-                LinkedListNode<Value> previousArg = argument;
-
                 List<Value> unrolledLoop = CreateUnrolledLoop(code, parent);
-                LinkedList<Value>? argumentsList = argument.List;
-                if (argumentsList is null)
-                    return false;
-                foreach (Value value in unrolledLoop)
-                    previousArg = argumentsList.AddAfter(previousArg, value);
 
-                return true; // remove the node
+                bool needBegin = NeedBegin(parent);
+                LinkedList<Value> argumentsList;
+                LinkedListNode<Value>? previousArg;
+
+                if (needBegin)
+                {
+                    code.Function = new Atom("begin", code);
+                    code.Arguments.Clear();
+                    previousArg = null;
+                    argumentsList = code.Arguments;
+                } else
+                {
+                    previousArg = argument;
+                    if (argument.List is not null)
+                        argumentsList = argument.List;
+                    else
+                        return false;
+                }
+
+                foreach (Value value in unrolledLoop)
+                    previousArg = (previousArg is null) ? argumentsList.AddFirst(value) : argumentsList.AddAfter(previousArg, value);
+
+                return !needBegin; // remove the node unless begin was used
             }
 
             return false;
