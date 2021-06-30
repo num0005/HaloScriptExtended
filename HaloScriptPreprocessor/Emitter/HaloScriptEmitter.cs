@@ -38,6 +38,7 @@ namespace HaloScriptPreprocessor.Emitter
                     Debug.Fail("unreachable!");
                 }
             }
+            _textWriter.Flush();
         }
 
         void emitScript(Script script)
