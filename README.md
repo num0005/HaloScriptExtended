@@ -3,7 +3,7 @@
 [![.NET 5](https://github.com/num0005/HaloScriptExtended/actions/workflows/dotnet.yml/badge.svg)](https://github.com/num0005/HaloScriptExtended/actions/workflows/dotnet.yml)
 [![CodeQL](https://github.com/num0005/HaloScriptExtended/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/num0005/HaloScriptExtended/actions/workflows/codeql-analysis.yml)
 
-An extension to the HaloScript language used in the [Halo game series](https://en.wikipedia.org/wiki/Halo_(franchise)) and [Stubs the Zombie](https://en.wikipedia.org/wiki/Stubbs_the_Zombie_in_Rebel_Without_a_Pulse).
+An extension to the HaloScript language used in the [Halo game series](https://en.wikipedia.org/wiki/Halo_(franchise)) and [Stubbs the Zombie](https://en.wikipedia.org/wiki/Stubbs_the_Zombie_in_Rebel_Without_a_Pulse).
 
 # Features
 
