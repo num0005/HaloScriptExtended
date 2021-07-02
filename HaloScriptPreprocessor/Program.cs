@@ -60,7 +60,7 @@ namespace HaloScriptPreprocessor
                                 return $"automatically generated code: {nodeNamed.Name} ¦ {nodeNamed.ToString()}";
                         }
                     );
-                    Console.WriteLine("in" + source);
+                    Console.WriteLine("in " + source);
                 }
             }
 

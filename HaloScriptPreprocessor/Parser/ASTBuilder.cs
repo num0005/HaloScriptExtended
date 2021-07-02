@@ -7,7 +7,6 @@ using HaloScriptPreprocessor.AST;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 
 namespace HaloScriptPreprocessor.Parser
@@ -135,6 +134,16 @@ namespace HaloScriptPreprocessor.Parser
         {
             foreach (AST.NodeNamed rootNode in _addedNamed)
             {
+                ReadOnlySpan<char> name = rootNode.Name.ToSpan();
+                foreach (char @char in name)
+                    if (!Char.IsLetterOrDigit(@char) && @char !='_' && @char != '-')
+                    {
+                        _reporting.Report(Error.Level.Warning, rootNode.Name, "Script and global names should be limited to alphanumerical and _-");
+                        break;
+                    }
+                if (!Char.IsLetter(name[0]) && name[0] != '_' && name[0] != '-')
+                    _reporting.Report(Error.Level.Warning, rootNode.Name, "Script and global names should start with a letter or \"_\" or \"-\"");
+
                 if (rootNode is Global global)
                     resolveValue(global.Value, global);
                 if (rootNode is Script script)
