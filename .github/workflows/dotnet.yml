@@ -126,5 +126,5 @@ jobs:
       with:
         prerelease: true
         token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: *.zip
+        artifacts: "*.zip"
         tag: ${{ github.run_id }}
