@@ -28,13 +28,7 @@ jobs:
       run: dotnet build --configuration Release
     - name: Test
       run: dotnet test -v n
-    - name: Publish generic
-      run: dotnet publish -c Release
-    - name: Upload artifact generic
-      uses: actions/upload-artifact@v2
-      with:
-        name: generic
-        path: HaloScriptPreprocessor/bin/Release/net5.0/publish/
+      
     - name: Publish windows (x86)
       run: dotnet publish -c Release -r win-x86 -P:PublishSingleFile=true -p:PublishTrimmed=false --self-contained false HaloScriptPreprocessor
     - name: Upload artifact windows (x86)
@@ -123,12 +117,12 @@ jobs:
     - uses: actions/download-artifact@v2
     - name: Compress artifacts
       run: |
-        zip -r generic.zip generic
         zip -r win-x86.zip win-x86
         zip -r win-x64.zip win-x64
         zip -r linux-x64.zip linux-x64
         zip -r linux-arm64.zip linux-arm64
         zip -r osx-x64.zip osx-x64
+#        zip -r generic.zip generic
 #        zip -r osx.11.0-arm64.zip osx.11.0-arm64
     - uses: ncipollo/release-action@v1
       with:
