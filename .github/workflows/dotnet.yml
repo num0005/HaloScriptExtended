@@ -63,13 +63,13 @@ jobs:
       with:
         name: osx-x64
         path: HaloScriptPreprocessor/bin/Release/net5.0/osx-x64/publish/
-    - name: Publish macOS 11.01 Big Sur (arm64)
-      run: dotnet publish -c Release -r osx.11.0-arm64 -P:PublishSingleFile=true -p:PublishTrimmed=false --self-contained false HaloScriptPreprocessor
-    - name: Upload artifact macOS 11.01 Big Sur (arm64)
-      uses: actions/upload-artifact@v2
-      with:
-        name: osx.11.0-arm64
-        path: HaloScriptPreprocessor/bin/Release/net5.0/osx.11.0-arm64/publish/
+#    - name: Publish macOS 11.01 Big Sur (arm64)
+#      run: dotnet publish -c Release -r osx.11.0-arm64 -P:PublishSingleFile=true -p:PublishTrimmed=false --self-contained false HaloScriptPreprocessor
+#    - name: Upload artifact macOS 11.01 Big Sur (arm64)
+#      uses: actions/upload-artifact@v2
+#      with:
+#        name: osx.11.0-arm64
+#        path: HaloScriptPreprocessor/bin/Release/net5.0/osx.11.0-arm64/publish/
   build-windows:
 
     runs-on: windows-latest # run on Windows cause people actually use it
@@ -104,3 +104,27 @@ jobs:
       run: dotnet build --configuration Release
     - name: Test
       run: dotnet test -v n
+      
+  release:
+    if: |
+      github.event.action != 'pull_request' &&
+      github.ref == 'refs/heads/prime' &&
+      github.repository == 'num0005/HaloScriptExtended'
+    needs: build-linux
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v2
+    - name: Compress artifacts
+      run: |
+        zip -r generic.zip generic
+        zip -r win-x64.zip win-x64
+        zip -r linux-x64.zip linux-x64
+        zip -r linux-arm64.zip linux-arm64
+        zip -r osx-x64.zip osx-x64
+#        zip -r osx.11.0-arm64.zip osx.11.0-arm64
+    - uses: ncipollo/release-action@v1
+      with:
+        prerelease: true
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: *.zip
+        tag: ${{ github.run_id }}
