@@ -124,7 +124,7 @@ jobs:
     - name: Compress artifacts
       run: |
         zip -r generic.zip generic
-        zip -r win-x32.zip win-x32
+        zip -r win-x86.zip win-x86
         zip -r win-x64.zip win-x64
         zip -r linux-x64.zip linux-x64
         zip -r linux-arm64.zip linux-arm64
