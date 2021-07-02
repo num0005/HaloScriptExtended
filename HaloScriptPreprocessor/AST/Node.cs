@@ -54,7 +54,11 @@ namespace HaloScriptPreprocessor.AST
             ParentNode = null;
             _name = name;
         }
-        public Atom Name => _name;
+        public Atom Name
+        {
+            get => _name;
+            set { _name = value; }
+        }
         protected Atom _name;
     }
 }

@@ -14,19 +14,79 @@ namespace HaloScriptPreprocessor
 {
     class Program
     {
+        static string[] errorLevels =
+        {
+            "[Error] ",
+            "[Warning] ",
+            "[Informational] "
+        };
+
+        static ConsoleColor[] errorColors =
+        {
+            ConsoleColor.Red,
+            ConsoleColor.Yellow,
+            ConsoleColor.Blue
+        };
+
+
+        static void ReportErrors(Error.Reporting reporting)
+        {
+            ConsoleColor oldColor = Console.ForegroundColor;
+
+            Console.WriteLine($"{reporting.Messages.Count} diagnostic messages emitted!");
+            int[] levelCount = { 0, 0, 0};
+            foreach (Error.Message message in reporting.Messages)
+            {
+                levelCount[(int)message.Level]++;
+                Console.ForegroundColor = errorColors[(int)message.Level];
+                Console.WriteLine(errorLevels[(int)message.Level] + message.Content);
+                if (message.Source is not null)
+                {
+                    string source = message.Source.Value.Match(
+                        source => source.PrettyPrint(),
+                        location => location.Formatted,
+                        node =>
+                        {
+                            if (node.Source is not null)
+                                return node.Source.Source.PrettyPrint();
+                            else
+                                return $"automatically generated code ¦ {node.ToString()}";
+                        },
+                        nodeNamed =>
+                        {
+                            if (nodeNamed.Source is not null)
+                                return nodeNamed.Source.Source.PrettyPrint();
+                            else
+                                return $"automatically generated code: {nodeNamed.Name} ¦ {nodeNamed.ToString()}";
+                        }
+                    );
+                    Console.WriteLine("in" + source);
+                }
+            }
+
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine($"{levelCount[0]} fatal errors reported!");
+            Console.WriteLine($"{levelCount[1]} warnings reported!");
+            Console.WriteLine($"{levelCount[2]} informational messages!");
+
+            // restore color
+            Console.ForegroundColor = oldColor;
+        }
         static void ProcessFile(IFileSystem fileSystem, string relativeFilePath)
         {
             IFileSystem.IFile? sourceFile = fileSystem.GetFile("hscx_scripts" + fileSystem.DirectorySeparator + relativeFilePath);
-
-            Transpiler transpiler = new(fileSystem);
-            if (sourceFile is not null)
-                transpiler.AddFile(sourceFile);
-            else
+            if (sourceFile is null)
                 throw new Exception("internal error!");
 
-            transpiler.RunPasses(Transpiler.Pass.Full);
+            Transpiler transpiler = new(fileSystem);
 
-            transpiler.EmitCode(relativeFilePath);
+            if (transpiler.AddFile(sourceFile))
+            {
+                if (transpiler.RunPasses(Transpiler.Pass.Full))
+                    transpiler.EmitCode(relativeFilePath);
+            }
+
+            ReportErrors(transpiler.ErrorReporting);
         }
         static void Main(string[] args)
         {

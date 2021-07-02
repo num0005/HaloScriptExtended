@@ -14,7 +14,9 @@ namespace HaloScriptPreprocessor.Parser
 {
     class ASTBuilder
     {
-
+        /// <summary>
+        /// Helper struct for parsing <c>Expression</c>'s  
+        /// </summary>
         private struct expressionReader
         {
             public expressionReader(Expression expression)
@@ -23,6 +25,10 @@ namespace HaloScriptPreprocessor.Parser
                 _index = 0;
             }
 
+            /// <summary>
+            /// Get the next value or null
+            /// </summary>
+            /// <returns></returns>
             public Value? Next()
             {
                 if (_index == Expression.Values.Count)
@@ -30,27 +36,50 @@ namespace HaloScriptPreprocessor.Parser
                 return Expression.Values[_index++];
             }
 
+            /// <summary>
+            /// Is the end of expression/stream reached?
+            /// </summary>
+            /// <returns></returns>
             public bool IsEoS()
             {
                 return _index == Expression.Values.Count;
             }
 
-            private Value NextExpectValue()
+            /// <summary>
+            /// Get the next value or throws if EoS
+            /// </summary>
+            /// <param name="error">Error message to show</param>
+            /// <returns>Value</returns>
+            /// <exception cref="UnexpectedExpression"></exception>
+            private Value NextExpectValue(string message)
             {
                 if (Next() is Value value)
                     return value;
                 else
-                    throw new UnexpectedExpression(Expression.Source, "Unexpected end of expression!");
+                    throw new UnexpectedExpression(Expression.Source, "Unexpected end of expression: " + message);
             }
 
+            /// <summary>
+            /// Get an <c>Expression</c> throws an exception if the next <c>Value</c> is an atom or null.
+            /// </summary>
+            /// <param name="error">Error message to show</param>
+            /// <returns>Atom</returns>
+            /// <exception cref="UnexpectedExpression"></exception>
             public Expression NextExpectExpression(string message)
             {
-                return NextExpectValue().ExpectExpression(message);
+                return NextExpectValue(message).ExpectExpression(message);
             }
 
+            /// <summary>
+            /// Get an <c>Atom</c> throws an exception if the next <c>Value</c> is an expressions or null.
+            /// </summary>
+            /// <param name="error">Error message to show</param>
+            /// <returns>Atom</returns>
+            /// <exception cref="UnexpectedExpression"></exception>
+            /// <exception cref="UnexpectedAtom"></exception>
             public Atom NextExpectAtom(string message)
             {
-                return NextExpectValue().ExpectAtom(message);
+                return NextExpectValue(message).ExpectAtom(message);
             }
 
             public int Index => _index;
@@ -59,45 +88,49 @@ namespace HaloScriptPreprocessor.Parser
             private int _index;
         }
 
-        public ASTBuilder(IFileSystem fileSystem, string directory, AST.AST ast)
+        public ASTBuilder(IFileSystem fileSystem, string directory, AST.AST ast, Error.Reporting reporting)
         {
             _fileSystem = fileSystem;
             _directory = directory;
             _ast = ast;
+            _reporting = reporting;
         }
 
         /// <summary>
         /// Import a file and all files referenced using <c>(import "filename")</c>
         /// </summary>
         /// <param name="fileName"></param>
-        public void Import(string fileName)
+        public bool Import(string fileName)
         {
             _addedNamed.Clear();
 
             // parse expressions
             parseExpressions(fileName);
-            // build AST from expressions
-            build();
-            // Resolve the expressions
-            resolve();
+            if (_reporting.HasFatalErrors)
+                return false;
+
+            return BuildAndResolve();
         }
 
         /// <summary>
         /// Import a file and all files referenced using <c>(import "filename")</c>
         /// </summary>
         /// <param name="file"></param>
-        public void Import(IFileSystem.IFile file)
+        public bool Import(IFileSystem.IFile file)
         {
             _addedNamed.Clear();
 
             // parse expressions
             parseExpressions(file);
-            // build AST from expressions
-            build();
-            // Resolve the expressions
-            resolve();
+            if (_reporting.HasFatalErrors)
+                return false;
+
+            return BuildAndResolve();
         }
 
+        /// <summary>
+        /// Resolve names to AST nodes if possible
+        /// </summary>
         private void resolve()
         {
             foreach (AST.NodeNamed rootNode in _addedNamed)
@@ -112,6 +145,11 @@ namespace HaloScriptPreprocessor.Parser
             }
         }
 
+        /// <summary>
+        /// Resolve names inside a value to AST nodes
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="parent"></param>
         private void resolveValue(AST.Value value, AST.Node parent)
         {
             value.ParentNode = parent;
@@ -129,18 +167,57 @@ namespace HaloScriptPreprocessor.Parser
             }
         }
 
+        /// <summary>
+        /// Resolve names inside a code to AST nodes
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="parent"></param>
         private void resolveCode(AST.Code code, AST.Node parent)
         {
             code.ParentNode = parent;
             NodeNamed? resolved = _ast.Get(code.Function.AsT0.ToString()); // todo, make this use span not a string
             if (resolved is Global global)
-                throw new UnexpectedAtom(code.Function.AsT0.Source.Source, "Globals are not functions!");
+            {
+                _reporting.Report(Error.Level.Error, code.Function.AsT0.Source.Source, $"Global \"{global.Name.ToString()}\" is being used as a function!");
+            }
             else if (resolved is Script script)
                 code.Function = script;
             foreach (AST.Value arg in code.Arguments)
                 resolveValue(arg, code);
         }
 
+        /// <summary>
+        /// Build AST and resolve names within it
+        /// </summary>
+        /// <returns>Whatever everything succeeded</returns>
+        private bool BuildAndResolve()
+        {
+            try
+            {
+                // build AST from expressions
+                build();
+                // Resolve the expressions
+                resolve();
+            } catch (UnexpectedExpression ex)
+            {
+                _reporting.Report(Error.Level.Error, ex.Expression, "Unexpected expression:" + ex.Message);
+            } catch (UnexpectedAtom ex)
+            {
+                _reporting.Report(Error.Level.Error, ex.Expression, "Unexpected atom:" + ex.Message);
+            } catch (InvalidExpression ex)
+            {
+                _reporting.Report(Error.Level.Error, ex.Expression, "Invalid expression:" + ex.Message);
+            }
+
+            return !_reporting.HasFatalErrors;
+        }
+
+        /// <summary>
+        /// Build an AST from expressions
+        /// </summary>
+        /// <exception cref="UnexpectedExpression"></exception>
+        /// <exception cref="UnexpectedAtom"></exception>
+        /// <exception cref="InvalidExpression"></exception>
         private void build()
         {
             ReadOnlySpan<char> globalSpan = "global".AsSpan();
@@ -185,6 +262,11 @@ namespace HaloScriptPreprocessor.Parser
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="node"></param>
+        /// <exception cref="UnexpectedExpression"></exception>
         private void addNamedNode(NodeNamed node)
         {
             NodeNamed? existing = _ast.Get(node.Name.ToString());
@@ -213,6 +295,14 @@ namespace HaloScriptPreprocessor.Parser
             }
         }
 
+        /// <summary>
+        /// Build a userscript from expressions
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
+        /// <exception cref="UnexpectedExpression"></exception>
+        /// <exception cref="UnexpectedAtom"></exception>
+        /// <exception cref="InvalidExpression"></exception>
         private AST.Script buildScript(ref expressionReader reader)
         {
             Debug.Assert(reader.Expression.Values[0].Source.Contents == "script");
@@ -261,6 +351,14 @@ namespace HaloScriptPreprocessor.Parser
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
+        /// <exception cref="UnexpectedExpression"></exception>
+        /// <exception cref="UnexpectedAtom"></exception>
+        /// <exception cref="InvalidExpression"></exception>
         private LinkedList<AST.Value> buildCodeList(ref expressionReader reader)
         {
             LinkedList<AST.Value> list = new();
@@ -279,6 +377,15 @@ namespace HaloScriptPreprocessor.Parser
             return list;
         }
 
+        /// <summary>
+        /// Build an AST global
+        /// </summary>
+        /// <param name="expression">Expression to build from</param>
+        /// <param name="isConst">Is this a constant global?</param>
+        /// <returns>The global</returns>
+        /// <exception cref="UnexpectedExpression"></exception>
+        /// <exception cref="UnexpectedAtom"></exception>
+        /// <exception cref="InvalidExpression"></exception>
         private AST.Global buildGlobal(Expression expression, bool isConst)
         {
             if (expression.Values.Count != 4)
@@ -295,6 +402,15 @@ namespace HaloScriptPreprocessor.Parser
             return global;
         }
 
+        /// <summary>
+        /// Build an AST value from Expressions
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="parentExpressionType"></param>
+        /// <returns></returns>
+        /// <exception cref="UnexpectedExpression"></exception>
+        /// <exception cref="UnexpectedAtom"></exception>
+        /// <exception cref="InvalidExpression"></exception>
         private AST.Value buildValue(Value value, AST.Atom? parentExpressionType = null)
         {
             if (value is Atom atom)
@@ -304,6 +420,15 @@ namespace HaloScriptPreprocessor.Parser
             throw new InvalidOperationException();
         }
 
+        /// <summary>
+        /// Build code AST from expression
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="parentExpressionType">Parent expression function if any</param>
+        /// <returns></returns>
+        /// <exception cref="UnexpectedExpression"></exception>
+        /// <exception cref="UnexpectedAtom"></exception>
+        /// <exception cref="InvalidExpression"></exception>
         private AST.Code buildCode(Value value, AST.Atom? parentExpressionType)
         {
             if (value is not Expression expression)
@@ -361,6 +486,7 @@ namespace HaloScriptPreprocessor.Parser
         /// <summary>
         /// Parse all import directives
         /// </summary>
+        /// <exception cref="InvalidExpression"> thrown if an invalid import directive is encountered </exception>
         private void handleImportDirectives()
         {
             ReadOnlySpan<char> importSpan = "import".AsSpan();
@@ -376,13 +502,21 @@ namespace HaloScriptPreprocessor.Parser
 
                 // so the expression is an import directive
                 if (expression.Values.Count != 2)
-                    throw new InvalidExpression(expression.Source, "Excepting a expression in the format \"(import <filename>)\"!");
+                {
+                    _reporting.Report(Error.Level.Error, expression.Source, "Excepting a expression in the format \"(import <filename>)\"!");
+                    continue;
+                }
 
                 if (expression.Values[1] is not Atom fileNameAtom)
-                    throw new InvalidExpression(expression.Values[1].Source, "Filename should be an atom not an expression!");
+                {
+                    _reporting.Report(Error.Level.Error, expression.Values[1].Source, "Filename should be an atom not an expression!");
+                    continue;
+                }
 
                 string fileName = fileNameAtom.Source.Contents;
-                importSourceFile(fileName, expression); // add the new expressions (if any)
+                // add the new expressions (if any)
+                if (!importSourceFile(fileName, expression))
+                    _reporting.Report(Error.Level.Error, expression.Source, $"Failed to import: {fileName}");
             }
         }
 
@@ -391,26 +525,55 @@ namespace HaloScriptPreprocessor.Parser
         /// </summary>
         /// <param name="fileName"></param>
         /// <param name="sourceExpression">Expression that caused the file to get added<</param>
-        private void importSourceFile(string fileName, Expression? sourceExpression = null)
+        /// <returns>Whatever the file was parsed successfully</returns>
+        private bool importSourceFile(string fileName, Expression? sourceExpression = null)
         {
             // only import each file once (maybe this should emit a warning?)
             if (_files.ContainsKey(fileName))
-                return;
+                return true;
             if (_fileSystem.GetFile(_directory + _fileSystem.DirectorySeparator + fileName) is IFileSystem.IFile file)
-                parseSourceFile(addSourceFile(file, sourceExpression));
+            {
+                return parseSourceFile(addSourceFile(file, sourceExpression));
+            }
             else
-                throw new Exception("no such file!"); // todo emit an error here once new error handling is up
+            {
+                if (sourceExpression is null)
+                    _reporting.Report(Error.Level.Error, $"\"{fileName}\" was not found!");
+                else
+                    _reporting.Report(Error.Level.Error, sourceExpression.Source, $"\"{fileName}\" was not found!");
+                return false;
+            }
         }
 
-        private void importMainFile(IFileSystem.IFile file)
+        private bool importMainFile(IFileSystem.IFile file)
         {
-            parseSourceFile(addSourceFile(file));
+            return parseSourceFile(addSourceFile(file));
         }
 
-        private void parseSourceFile(SourceFile file)
+        /// <summary>
+        /// Parse a <c>SourceFile</c>
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns>Whatever the file was parsed successfully</returns>
+        private bool parseSourceFile(SourceFile file)
         {
             ExpressionParser parser = new(_parsed, file);
-            parser.Parse();
+            try
+            {
+                parser.Parse();
+                return true;
+            } catch (UnexpectedAtom ex)
+            {
+                _reporting.Report(Error.Level.Error, ex.Expression, "Unexpected Atom: " + ex.Message);
+            } catch (UnterminatedElement ex)
+            {
+                _reporting.Report(Error.Level.Error, new FileSourceLocation(ex.SourceLocation, file), "Unterminated element: " + ex.Message);
+            } catch (UnexpectedCharactrerError ex)
+            {
+                _reporting.Report(Error.Level.Error, new FileSourceLocation(ex.SourceLocation, file), "Unexpected character: " + ex.Message);
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -441,6 +604,8 @@ namespace HaloScriptPreprocessor.Parser
 
         private readonly IFileSystem _fileSystem;
         private readonly string _directory;
+
+        readonly private Error.Reporting _reporting;
 
     }
 }

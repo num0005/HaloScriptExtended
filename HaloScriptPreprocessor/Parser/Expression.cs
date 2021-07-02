@@ -23,6 +23,23 @@ namespace HaloScriptPreprocessor.Parser
         public readonly int Offset; // Offset in the source string
         public readonly int Line; // line (used for debugging)
         public readonly int Column; // column (used for debugging)
+
+        public string PrettyPrint()
+        {
+            return $"{Line}:{Column}";
+        }
+
+        public override string ToString()
+        {
+            return $"Line={Line}, Column={Column}, Offset={Offset}";
+        }
+    }
+
+    public record FileSourceLocation(SourceLocation Location, SourceFile File)
+    {
+        public char Contents => File.Data[Location.Offset];
+
+        public string Formatted => $"{File.FileName}|{Location.PrettyPrint()} ¦ {Contents}";
     }
 
     /// <summary>
@@ -63,6 +80,13 @@ namespace HaloScriptPreprocessor.Parser
             }
         }
 
+        public string FileName => _file.FileName;
+
+        public string PrettyPrint()
+        {
+            return $"{FileName}|{Start.PrettyPrint()}..{End.Value.PrettyPrint()} ¦ {Contents}";
+        }
+
         /// <summary>
         /// Set the end of the source (only allowed if the source is partial)
         /// </summary>
@@ -92,8 +116,18 @@ namespace HaloScriptPreprocessor.Parser
         {
             Source = source;
         }
+
+        /// <summary>
+        /// Source of the value
+        /// </summary>
         public readonly ExpressionSource Source;
 
+        /// <summary>
+        /// Get an <c>Atom</c> throws an exception if <c>Value</c> is an expressions.
+        /// </summary>
+        /// <param name="error">Error message to show</param>
+        /// <returns>Atom</returns>
+        /// <exception cref="UnexpectedExpression"></exception>
         public Atom ExpectAtom(string error)
         {
             if (this is not Atom atom)
@@ -101,6 +135,12 @@ namespace HaloScriptPreprocessor.Parser
             return atom;
         }
 
+        /// <summary>
+        /// Get an <c>Expression</c> throws an exception if <c>Value</c> is an atom.
+        /// </summary>
+        /// <param name="error">Error message to show</param>
+        /// <returns>Expression</returns>
+        /// <exception cref="UnexpectedAtom"></exception>
         public Expression ExpectExpression(string error)
         {
             if (this is not Expression expression)
@@ -108,8 +148,6 @@ namespace HaloScriptPreprocessor.Parser
             return expression;
         }
     }
-
-
 
     /// <summary>
     /// A ordered list of other values

@@ -14,7 +14,7 @@ namespace HaloScriptPreprocessor.Tests.Interpreter
         public InterpreterTests()
         {
             TestFileSystem testFS = new();
-            HaloScriptPreprocessor.Parser.ASTBuilder builder = new(testFS, "", _ast);
+            HaloScriptPreprocessor.Parser.ASTBuilder builder = new(testFS, "", _ast, new());
             builder.Import(testFS.GetFile("HaloScriptPreprocessor.Tests.Interpreter.test.hsc"));
             _interpreter = new(builder.Ast);
         }

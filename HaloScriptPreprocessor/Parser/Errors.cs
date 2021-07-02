@@ -36,16 +36,25 @@ namespace HaloScriptPreprocessor.Parser
         public readonly ExpressionSource Expression;
     }
 
+    /// <summary>
+    /// Atom when one wasn't expected
+    /// </summary>
     class UnexpectedAtom : ParseError
     {
         public UnexpectedAtom(ExpressionSource source, string message) : base(source, message) { }
     }
 
+    /// <summary>
+    /// Expression when one wasn't expected
+    /// </summary>
     class UnexpectedExpression : ParseError
     {
         public UnexpectedExpression(ExpressionSource source, string message) : base(source, message) { }
     }
 
+    /// <summary>
+    /// Expression that was invalid
+    /// </summary>
     class InvalidExpression : ParseError
     {
         public InvalidExpression(ExpressionSource source, string message) : base(source, message) { }

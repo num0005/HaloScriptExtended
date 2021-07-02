@@ -13,7 +13,7 @@ namespace HaloScriptPreprocessor
         public Transpiler(IFileSystem fileSystem)
         {
             FileSystem = fileSystem;
-            _ASTBuilder = new(fileSystem, "hscx_scripts", AST);
+            _ASTBuilder = new(fileSystem, "hscx_scripts", AST, ErrorReporting);
             _interpreter = new(_ast);
         }
 
@@ -21,9 +21,9 @@ namespace HaloScriptPreprocessor
         /// Add a file to the AST
         /// </summary>
         /// <param name="file">Source file</param>
-        public void AddFile(IFileSystem.IFile file)
+        public bool AddFile(IFileSystem.IFile file)
         {
-            _ASTBuilder.Import(file);
+            return _ASTBuilder.Import(file);
         }
 
         /// <summary>
@@ -32,6 +32,8 @@ namespace HaloScriptPreprocessor
         /// <param name="fileName">File to emit to</param>
         public void EmitCode(string fileName)
         {
+#if debug
+#endif
             EmitCode(FileSystem.GetTextWriter("scripts" + FileSystem.DirectorySeparator + fileName));
         }
 
@@ -78,7 +80,7 @@ namespace HaloScriptPreprocessor
             All = Full
         };
 
-        public void RunPasses(Pass passes)
+        public bool RunPasses(Pass passes)
         {
             Passes.ConstantGlobalPass constantGlobalPass = new(AST, Interpreter);
             Passes.LoopUnrolling loopUnrolling = new(AST, Interpreter);
@@ -93,14 +95,17 @@ namespace HaloScriptPreprocessor
                 constantGlobalPass.Run();
             if (passes.HasFlag(Pass.ConstantEval))
                 compileTimeEvaluationPass.Run();
+            return !_reporting.HasFatalErrors;
         }
 
         public IFileSystem FileSystem { get; }
         public AST.AST AST => _ast;
         public Interpreter.Interpreter Interpreter => _interpreter;
+        public Error.Reporting ErrorReporting => _reporting;
 
         readonly private AST.AST _ast = new();
         readonly private Parser.ASTBuilder _ASTBuilder;
         readonly private Interpreter.Interpreter _interpreter;
+        readonly private Error.Reporting _reporting = new();
     }
 }

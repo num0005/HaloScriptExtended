@@ -19,8 +19,12 @@ namespace HaloScriptPreprocessor.Parser
             _sourceFile = sourceFile;
         }
 
-        #region implementation
-
+        /// <summary>
+        /// Parse <c>sourceFile</c> to expressions
+        /// </summary>
+        /// <exception cref="UnexpectedCharactrerError"></exception>
+        /// <exception cref="UnterminatedElement"></exception>
+        /// <exception cref="UnexpectedAtom"></exception>
         public void Parse()
         {
             (TokenType Type, OneOf<ExpressionSource, SourceLocation> Source)? token;
@@ -123,6 +127,12 @@ namespace HaloScriptPreprocessor.Parser
 
 #pragma warning disable CS8604
 
+        /// <summary>
+        /// Get the next "token" or null
+        /// </summary>
+        /// <exception cref="UnexpectedCharactrerError"></exception>
+        /// <exception cref="UnterminatedElement"></exception>
+        /// <returns>Token type and source</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private (TokenType Type, OneOf<ExpressionSource, SourceLocation> Source)? nextToken()
         {
@@ -346,7 +356,5 @@ namespace HaloScriptPreprocessor.Parser
         int _currentColunm = 0;
         bool _inStandardComment = false; // are we currently inside a standard comment?
         bool _inMultilineComment = false; // are we currently inside a multiline comment?
-
-        #endregion
     }
 }

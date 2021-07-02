@@ -15,13 +15,14 @@ namespace HaloScriptPreprocessor.Tests.Parser
     {
         public ASTBuilderTests()
         {
-            _builder = new(testFS, "", new());
+            _builder = new(testFS, "", new(), _reporting);
             _privateObject = new(_builder);
         }
 
         TestFileSystem testFS = new();
-        private ASTBuilder _builder;
-        private PrivateObject _privateObject;
+        readonly private ASTBuilder _builder;
+        readonly private PrivateObject _privateObject;
+        readonly private Error.Reporting _reporting = new();
 
         [Theory]
         [InlineData("HaloScriptPreprocessor.Tests.Interpreter.test.hsc", 8)]
