@@ -43,7 +43,7 @@ jobs:
         name: win-x64
         path: HaloScriptPreprocessor/bin/Release/net5.0/win-x64/publish/
     - name: Publish Linux (x64)
-      run: dotnet publish -c Release -r linux-x64 -P:PublishSingleFile=true -p:PublishTrimmed=false --self-contained false 
+      run: dotnet publish -c Release -r linux-x64 -P:PublishSingleFile=true -p:PublishTrimmed=false --self-contained false HaloScriptPreprocessor
     - name: Upload artifact Linux (x64)
       uses: actions/upload-artifact@v2
       with:
