@@ -13,9 +13,10 @@ namespace HaloScriptPreprocessor.Passes
     /// </summary>
     class ConstantGlobalPass : PassBase
     {
-        public ConstantGlobalPass(AST.AST ast, Interpreter.Interpreter interpreter) : base(ast)
+        public ConstantGlobalPass(AST.AST ast, Error.Reporting reporting, Interpreter.Interpreter interpreter) : base(ast)
         {
             _interpreter = interpreter;
+            _reporting = reporting;
         }
         protected override void OnVisitCode(Code code)
         {
@@ -32,6 +33,7 @@ namespace HaloScriptPreprocessor.Passes
                 return false;
             if (GetGlobalValueStrng(global) is null)
             {
+                _reporting.Report(Error.Level.Warning, global, "Unable to evaluate constglobal at compile time, downgrading to global, was this intentional?");
                 global.IsConst = false;
                 return false;
             }
@@ -64,6 +66,7 @@ namespace HaloScriptPreprocessor.Passes
                 return intGlobal.GetString();
         }
 
-        private Interpreter.Interpreter _interpreter;
+        private readonly Interpreter.Interpreter _interpreter;
+        private readonly Error.Reporting _reporting;
     }
 }

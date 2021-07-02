@@ -14,17 +14,26 @@ namespace HaloScriptPreprocessor.Passes
 {
     public class MacroExpansionPass : PassBase
     {
-        public MacroExpansionPass(AST.AST ast) : base(ast) { }
+        public MacroExpansionPass(AST.AST ast, Error.Reporting reporting) : base(ast) 
+        {
+            _reporting = reporting;
+        }
 
         List<Value>? expandMacro(Code code, Node parent)
         {
             if (code.Function.Value is not Script script || script.Type != ScriptType.Macro)
                 return null;
+
             List<Value> expandedMacro = new();
+
             if (script.Arguments is null)
-                throw new Exception("Invalid AST - macro without arguments!");
+                throw new InvalidOperationException("Invalid AST - macro without arguments!");
+
             if (script.Arguments.Count != code.Arguments.Count)
-                throw new Parser.InvalidExpression(code.Source.Source, "Wrong number of arguments!");
+            {
+                _reporting.Report(Error.Level.Error, $"Wrong number of arguments to marco! Got {code.Arguments.Count}, expected {script.Arguments.Count}");
+                return null;
+            }
 
             List<Value> codeArgs = new(code.Arguments);
             Dictionary<Value, Value> mapping = new();
@@ -78,5 +87,6 @@ namespace HaloScriptPreprocessor.Passes
         {
         }
 
+        readonly private Error.Reporting _reporting;
     }
 }

@@ -13,9 +13,10 @@ namespace HaloScriptPreprocessor.Passes
 {
     class LoopUnrolling : PassBase
     {
-        public LoopUnrolling(AST.AST ast, Interpreter.Interpreter interpreter) : base(ast)
+        public LoopUnrolling(AST.AST ast, Error.Reporting reporting, Interpreter.Interpreter interpreter) : base(ast)
         {
             _interpreter = interpreter;
+            _reporting = reporting;
         }
         protected override void OnVisitCode(Code code)
         {
@@ -35,6 +36,9 @@ namespace HaloScriptPreprocessor.Passes
             if (argument.Value.Content.Value is Code code && code.FunctionSpan.SequenceEqual("loop"))
             {
                 List<Value> unrolledLoop = CreateUnrolledLoop(code, parent);
+
+                if (unrolledLoop is null)
+                    return false;
 
                 bool needBegin = NeedBegin(parent);
                 LinkedList<Value> argumentsList;
@@ -64,21 +68,40 @@ namespace HaloScriptPreprocessor.Passes
             return false;
         }
 
-        private List<Value> CreateUnrolledLoop(Code loopExpression, AST.Node parent)
+        private List<Value>? CreateUnrolledLoop(Code loopExpression, AST.Node parent)
         {
             Debug.Assert(loopExpression.FunctionSpan.SequenceEqual("loop"));
+            if (loopExpression.Arguments.Count < 3)
+            {
+                _reporting.Report(Error.Level.Error, loopExpression, "Invalid loop expression, expecting (loop <counter> <start value> <end value> [expressions])");
+                return null;
+            }
             if (loopExpression.Arguments.First is not LinkedListNode<Value> loopCounter)
-                throw new Exception(); // todo error reporting
+                throw new InvalidOperationException("Unexpected missing arg!");
             if (loopCounter.Next is not LinkedListNode<Value> startNode)
-                throw new Exception(); // todo error reporting
+                throw new InvalidOperationException("Unexpected missing arg!");
             if (startNode.Next is not LinkedListNode<Value> endNode)
-                throw new Exception(); // todo error reporting
-            Interpreter.Value? start = _interpreter.InterpretValue(startNode.Value);
-            Interpreter.Value? end = _interpreter.InterpretValue(endNode.Value);
-            if (start is null || end is null)
-                throw new Exception(); // todo error reporting
-            if (start.GetLong() is not long startValue || end.GetLong() is not long endValue)
-                throw new Exception(); // todo error reporting
+                throw new InvalidOperationException("Unexpected missing arg!");
+
+            Func<Value, string, long?> evalBound = (Value value, string name) =>
+            {
+                Interpreter.Value? intValue = _interpreter.InterpretValue(value);
+                if (intValue is null)
+                {
+                    _reporting.Report(Error.Level.Error, startNode.Value, $"Unable to evaluate {name} value for loop!");
+                    return null;
+                }
+                if (intValue.GetLong() is not long longValue)
+                {
+                    _reporting.Report(Error.Level.Error, startNode.Value, $"Unable to evaluate loop {name} value as a long!");
+                    return null;
+                }
+                return longValue;
+            };
+
+            if (evalBound(startNode.Value, "start") is not long startValue 
+                    || evalBound(endNode.Value, "end") is not long endValue)
+                return null;
             return CreateUnrolledLoop(endNode.Next, parent, loopCounter.Value, startValue, endValue);
         }
 
@@ -116,13 +139,17 @@ namespace HaloScriptPreprocessor.Passes
         {
             if (value.Content.Value is Code code && code.FunctionSpan.SequenceEqual("loop"))
             {
-                List<Value> unrolledLoop = CreateUnrolledLoop(code, code);
+                List<Value>? unrolledLoop = CreateUnrolledLoop(code, code);
+                if (unrolledLoop is null)
+                    return;
+
                 // Replace the loop expression with a begin expression
                 code.Function = new Atom("begin");
                 code.Arguments = new(unrolledLoop);
             }
         }
 
-        private Interpreter.Interpreter _interpreter;
+        readonly private Interpreter.Interpreter _interpreter;
+        readonly private Error.Reporting _reporting;
     }
 }

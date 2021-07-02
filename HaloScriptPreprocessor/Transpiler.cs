@@ -82,9 +82,9 @@ namespace HaloScriptPreprocessor
 
         public bool RunPasses(Pass passes)
         {
-            Passes.ConstantGlobalPass constantGlobalPass = new(AST, Interpreter);
-            Passes.LoopUnrolling loopUnrolling = new(AST, Interpreter);
-            Passes.MacroExpansionPass macroExpansion = new(AST);
+            Passes.ConstantGlobalPass constantGlobalPass = new(AST, ErrorReporting, Interpreter);
+            Passes.LoopUnrolling loopUnrolling = new(AST, ErrorReporting, Interpreter);
+            Passes.MacroExpansionPass macroExpansion = new(AST, ErrorReporting);
             Passes.CompileTimeEvaluationPass compileTimeEvaluationPass = new(AST, Interpreter);
 
             if (passes.HasFlag(Pass.Macro))
