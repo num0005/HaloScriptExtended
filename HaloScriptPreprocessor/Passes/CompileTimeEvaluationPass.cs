@@ -27,27 +27,43 @@ namespace HaloScriptPreprocessor.Passes
             Interpreter.Value? interuptedValue = _interpreter.InterpretValue(value);
             if (interuptedValue is not null && interuptedValue.GetString() is string valueString)
                 value.Content = new Atom(valueString, value);
-            else if (value.Content.Value is Code code && SimplifyCode(code) is Code simpleCode)
-                value.Content = simpleCode;
+            else if (value.Content.Value is Code code)
+            {
+                if (SimplifyCode(code) is Code newCode)
+                    value.Content = newCode; // figure out what to do if we get null
+                if (SimplifyCodeToValue(code, value.ParentNode) is Value newValue)
+                    value.Content = newValue.Content;
+            }
         }
 
         private Code? SimplifyCode(Code code)
         {
-            return null;
             ReadOnlySpan<char> func = code.FunctionSpan;
             if (func.SequenceEqual("begin") && code.Arguments.Count == 1
                     && code.Arguments.First().Content.Value is Code beginArg)
                 return beginArg.Clone(code.ParentNode);
+            return code;
+        }
+
+        private Value? SimplifyCodeToValue(Code code, Node? parent)
+        {
+            ReadOnlySpan<char> func = code.FunctionSpan;
             if (func.SequenceEqual("if") && code.Arguments.Count <= 3 && code.Arguments.Count >= 2)
             {
-                Interpreter.Value? predicate = _interpreter.InterpretValue(code.Arguments.First());
+                List<Value> args = code.Arguments.ToList();
+                Interpreter.Value? predicate = _interpreter.InterpretValue(args[0]);
                 if (predicate is null)
-                    return code;
-                // if (predicate.GetBoolean() is true)
+                    return null;
+                if (predicate.GetBoolean() is true)
+                    return args[1].Clone(parent);
+                // todo what should this return if there isn't an else expression?
+                if (predicate.GetBoolean() is false && code.Arguments.Count == 3)
+                    return args[2].Clone(parent);
+
 
 
             }
-            return code;
+            return null;
         }
 
         protected override void OnVisitCode(Code code)
