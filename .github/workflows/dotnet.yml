@@ -1,27 +1,27 @@
-name: .NET 5
+name: .NET 8
 
 on:
   push:
-    branches: [ prime ]
+    branches: [ main ]
     paths-ignore:
       - '*.md'
   pull_request:
-    branches: [ prime ]
+    branches: [ main ]
     paths-ignore:
       - '*.md'
 
 jobs:
   build-linux:
 
-    runs-on: ubuntu-latest # run on Linux cause it's cheaper
+    runs-on: ubuntu-latest
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT : true
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '5.0.300'
+        dotnet-version: '8.x.x'
     - name: Install dependencies
       run: dotnet restore
     - name: Build
@@ -32,89 +32,55 @@ jobs:
     - name: Publish windows (x86)
       run: dotnet publish -c Release -r win-x86 -P:PublishSingleFile=true -p:PublishTrimmed=false --self-contained false HaloScriptPreprocessor
     - name: Upload artifact windows (x86)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: win-x86
-        path: HaloScriptPreprocessor/bin/Release/net5.0/win-x86/publish/
+        path: HaloScriptPreprocessor/bin/Release/net8.0/win-x86/publish/
     - name: Publish windows (x64)
       run: dotnet publish -c Release -r win-x64 -P:PublishSingleFile=true -p:PublishTrimmed=false --self-contained false HaloScriptPreprocessor
     - name: Upload artifact windows (x64)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: win-x64
-        path: HaloScriptPreprocessor/bin/Release/net5.0/win-x64/publish/
+        path: HaloScriptPreprocessor/bin/Release/net8.0/win-x64/publish/
     - name: Publish Linux (x64)
       run: dotnet publish -c Release -r linux-x64 -P:PublishSingleFile=true -p:PublishTrimmed=false --self-contained false HaloScriptPreprocessor
     - name: Upload artifact Linux (x64)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: linux-x64
-        path: HaloScriptPreprocessor/bin/Release/net5.0/linux-x64/publish/
+        path: HaloScriptPreprocessor/bin/Release/net8.0/linux-x64/publish/
     - name: Publish Linux (arm64)
       run: dotnet publish -c Release -r linux-arm64 -P:PublishSingleFile=true -p:PublishTrimmed=false --self-contained false HaloScriptPreprocessor
     - name: Upload artifact Linux (arm64)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: linux-arm64
-        path: HaloScriptPreprocessor/bin/Release/net5.0/linux-arm64/publish/
+        path: HaloScriptPreprocessor/bin/Release/net8.0/linux-arm64/publish/
     - name: Publish macOS (x64)
       run: dotnet publish -c Release -r osx-x64 -P:PublishSingleFile=true -p:PublishTrimmed=false --self-contained false HaloScriptPreprocessor
     - name: Upload artifact macOS (x64)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: osx-x64
-        path: HaloScriptPreprocessor/bin/Release/net5.0/osx-x64/publish/
-#    - name: Publish macOS 11.01 Big Sur (arm64)
-#      run: dotnet publish -c Release -r osx.11.0-arm64 -P:PublishSingleFile=true -p:PublishTrimmed=false --self-contained false HaloScriptPreprocessor
-#    - name: Upload artifact macOS 11.01 Big Sur (arm64)
-#      uses: actions/upload-artifact@v2
-#      with:
-#        name: osx.11.0-arm64
-#        path: HaloScriptPreprocessor/bin/Release/net5.0/osx.11.0-arm64/publish/
-  build-windows:
-
-    runs-on: windows-latest # run on Windows cause people actually use it
-    env:
-      DOTNET_CLI_TELEMETRY_OPTOUT : true
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+        path: HaloScriptPreprocessor/bin/Release/net8.0/osx-x64/publish/
+    - name: Publish macOS 11.01 Big Sur (arm64)
+      run: dotnet publish -c Release -r osx.11.0-arm64 -P:PublishSingleFile=true -p:PublishTrimmed=false --self-contained false HaloScriptPreprocessor
+    - name: Upload artifact macOS 11.01 Big Sur (arm64)
+      uses: actions/upload-artifact@v4
       with:
-        dotnet-version: '5.0.300'
-    - name: Install dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --configuration Release
-    - name: Test
-      run: dotnet test -v n
-  build-macos:
-
-    runs-on: macos-latest # run on MacOS cause we can
-    env:
-      DOTNET_CLI_TELEMETRY_OPTOUT : true
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '5.0.300'
-    - name: Install dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --configuration Release
-    - name: Test
-      run: dotnet test -v n
+        name: osx.11.0-arm64
+        path: HaloScriptPreprocessor/bin/Release/net8.0/osx.11.0-arm64/publish/
       
   release:
     if: |
       github.event.action != 'pull_request' &&
-      github.ref == 'refs/heads/prime' &&
+      github.ref == 'refs/heads/main' &&
       github.repository == 'num0005/HaloScriptExtended'
     needs: build-linux
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v4
     - name: Compress artifacts
       run: |
         zip -r win-x86.zip win-x86
